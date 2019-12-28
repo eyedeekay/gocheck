@@ -2,6 +2,7 @@ package gocheck
 
 import (
 	"github.com/eyedeekay/goSam"
+	"github.com/eyedeekay/sam-forwarder/interface"
 	"github.com/eyedeekay/sam-forwarder/tcp"
 
 	"fmt"
@@ -39,8 +40,10 @@ type Check struct {
 	*samforwarder.SAMForwarder
 	*http.Transport
 	*http.Client
-	i2p   *goSam.Client
-	sites []Site
+	i2p       *goSam.Client
+	sites     []Site
+	hostsfile string
+	up        bool
 }
 
 func LoadHostsFile(hostsfile string) ([]Site, error) {
@@ -75,6 +78,7 @@ func LoadHostsFile(hostsfile string) ([]Site, error) {
 func NewSAMChecker(hostsfile string) (*Check, error) {
 	var c Check
 	var err error
+	c.hostsfile = hostsfile
 	c.i2p, err = goSam.NewDefaultClient()
 	if err != nil {
 		return nil, err
@@ -85,7 +89,7 @@ func NewSAMChecker(hostsfile string) (*Check, error) {
 	c.Client = &http.Client{
 		Transport: c.Transport,
 	}
-	c.sites, err = LoadHostsFile(hostsfile)
+	c.sites, err = LoadHostsFile(c.hostsfile)
 	if err != nil {
 		return nil, err
 	}
@@ -131,4 +135,19 @@ func (c *Check) QuerySite(site string) string {
 		}
 	}
 	return "The site was not found"
+}
+
+func (s *Check) Load() (samtunnel.SAMTunnel, error) {
+	if !s.up {
+		fmt.Printf("Started putting tunnel up")
+	}
+	f, e := s.SAMForwarder.Load()
+	if e != nil {
+		return nil, e
+	}
+	s.SAMForwarder = f.(*samforwarder.SAMForwarder)
+	//s.mark = markdown.New(markdown.XHTMLOutput(true))
+	s.up = true
+	fmt.Printf("Finished putting tunnel up")
+	return s, nil
 }
