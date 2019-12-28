@@ -27,7 +27,10 @@ func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
 
 func (c *Check) Serve() error {
 	go c.Parent()
-
+    fmt.Printf("Starting web server", f.Target())
+	if err := http.ListenAndServe(f.Target(), f); err != nil {
+		return err
+	}
 	return nil
 }
 
