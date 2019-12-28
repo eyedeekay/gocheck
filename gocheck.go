@@ -24,6 +24,24 @@ type Site struct {
 	successHistory []bool
 }
 
+func (s *Site) HTML() string {
+	r := "<div id=\"" + s.url + "\">\n"
+	r += "<h3>"
+	if s.title == "" {
+		s.title = s.url
+	}
+	r += s.title
+	r += "</h3>\n"
+	r += "<p>  URL: " + s.url
+	r += "</p>\n"
+	r += "<p>  Description: " + s.desc
+	r += "</p>\n"
+	r += "<p>  Destination: " + s.dest
+	r += "</p>\n"
+	r += "</div>\n"
+	return r
+}
+
 func (s *Site) JsonString() string {
 	var r string
 	r = "{" +

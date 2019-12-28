@@ -20,7 +20,7 @@ func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
 		fmt.Fprintf(rw, c.QuerySite(query[0]))
 	} else {
 		for index, site := range c.sites {
-			fmt.Fprintf(rw, "%v: %s\n", index, site.JsonString())
+			fmt.Fprintf(rw, "%v: %s\n", index, site.HTML())
 		}
 	}
 }
