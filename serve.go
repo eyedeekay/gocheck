@@ -2,6 +2,7 @@ package gocheck
 
 import (
 	"fmt"
+	"github.com/eyedeekay/goSam"
 	"github.com/eyedeekay/sam-forwarder/tcp"
 	"net/http"
 	"strings"
@@ -15,7 +16,7 @@ func (c *Check) Parent() {
 }
 
 func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
-	if rq.URL.Path != "" {
+	if strings.Replace(rq.URL.Path, "/", "", -1) != "" {
 		query := strings.SplitN(rq.URL.Path, "/", 1)
 		fmt.Fprintf(rw, c.QuerySite(query[0]))
 	} else {
@@ -37,6 +38,7 @@ func (c *Check) Serve() error {
 //NewSAMCheckerFromOptions makes a new SAM forwarder with default options, accepts host:port arguments
 func NewSAMCheckerFromOptions(opts ...func(*Check) error) (*Check, error) {
 	var s Check
+	var err error
 	s.SAMForwarder = &samforwarder.SAMForwarder{}
 	fmt.Println("Initializing eephttpd")
 	for _, o := range opts {
@@ -45,6 +47,20 @@ func NewSAMCheckerFromOptions(opts ...func(*Check) error) (*Check, error) {
 		}
 	}
 	s.SAMForwarder.Config().SaveFile = true
+	s.i2p, err = goSam.NewDefaultClient()
+	if err != nil {
+		return nil, err
+	}
+	s.Transport = &http.Transport{
+		Dial: s.i2p.Dial,
+	}
+	s.Client = &http.Client{
+		Transport: s.Transport,
+	}
+	s.sites, err = LoadHostsFile(s.hostsfile)
+	if err != nil {
+		return nil, err
+	}
 	l, e := s.Load()
 	if e != nil {
 		return nil, e

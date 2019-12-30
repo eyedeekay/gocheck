@@ -1,4 +1,6 @@
 
+GO111MODULE=off
+
 build: fmt
 	go build -o ./main/gocheck ./main
 

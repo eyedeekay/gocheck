@@ -7,6 +7,7 @@ import (
 
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -94,24 +95,7 @@ func LoadHostsFile(hostsfile string) ([]Site, error) {
 }
 
 func NewSAMChecker(hostsfile string) (*Check, error) {
-	var c Check
-	var err error
-	c.hostsfile = hostsfile
-	c.i2p, err = goSam.NewDefaultClient()
-	if err != nil {
-		return nil, err
-	}
-	c.Transport = &http.Transport{
-		Dial: c.i2p.Dial,
-	}
-	c.Client = &http.Client{
-		Transport: c.Transport,
-	}
-	c.sites, err = LoadHostsFile(c.hostsfile)
-	if err != nil {
-		return nil, err
-	}
-	return &c, nil
+	return NewSAMCheckerFromOptions(SetHostsFile(hostsfile))
 }
 
 func Validate(u string) (string, error) {
@@ -127,17 +111,21 @@ func Validate(u string) (string, error) {
 	return u, nil
 }
 
+func (c *Check) AsyncGet(index int, site Site) {
+	_, err := c.Client.Get(site.url)
+	if err != nil {
+		fmt.Printf("the eepSite appears to be down: %v %s\n", index, err)
+		site.successHistory = append(site.successHistory, false)
+	} else {
+		fmt.Printf("the eepSite is up: %v %s\n", index, err)
+		site.successHistory = append(site.successHistory, true)
+	}
+}
+
 func (c *Check) CheckAll() {
 	for index, site := range c.sites {
-		fmt.Printf("Checking URL:")
-		_, err := c.Client.Get(site.url)
-		if err != nil {
-			fmt.Printf("the eepSite appears to be down: %v %s\n", index, err)
-			site.successHistory = append(site.successHistory, false)
-		} else {
-			fmt.Printf("the eepSite is up: %v %s\n", index, err)
-			site.successHistory = append(site.successHistory, true)
-		}
+		log.Printf("Checking URL: %s", site.url)
+		go c.AsyncGet(index, site)
 	}
 }
 
