@@ -6,6 +6,7 @@ import (
 	"github.com/eyedeekay/sam-forwarder/tcp"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func (c *Check) Parent() {
@@ -21,13 +22,21 @@ func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
 		fmt.Fprintf(rw, c.QuerySite(query[0]))
 	} else {
 		for index, site := range c.sites {
-			fmt.Fprintf(rw, "%v: %s\n", index, site.HTML())
+			fmt.Fprintf(rw, "<div class=\"idnum\" id=\"%v\">%v: </div> %s\n", index, index, site.HTML())
 		}
+	}
+}
+
+func (c *Check) CheckLoop() {
+	for {
+		time.Sleep(time.Minute * 10)
+		c.CheckAll()
 	}
 }
 
 func (c *Check) Serve() error {
 	go c.Parent()
+	go c.CheckLoop()
 	fmt.Printf("Starting web server", c.Target())
 	if err := http.ListenAndServe(c.Target(), c); err != nil {
 		return err
@@ -57,7 +66,8 @@ func NewSAMCheckerFromOptions(opts ...func(*Check) error) (*Check, error) {
 	s.Client = &http.Client{
 		Transport: s.Transport,
 	}
-	s.sites, err = LoadHostsFile(s.hostsfile)
+
+	s.sites, err = s.LoadHostsFile(s.hostsfile)
 	if err != nil {
 		return nil, err
 	}

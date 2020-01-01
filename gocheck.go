@@ -2,6 +2,7 @@ package gocheck
 
 import (
 	"github.com/eyedeekay/goSam"
+	"github.com/eyedeekay/i2pasta/convert"
 	"github.com/eyedeekay/sam-forwarder/interface"
 	"github.com/eyedeekay/sam-forwarder/tcp"
 
@@ -10,19 +11,46 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // TODO calculate approx 9's
+// TODO save check history(more json?)
 
 type Site struct {
-	url  string
-	dest string
+	url      string
+	dest     []string
+	base32   []string
+	uptime   int
+	downtime int
 
 	title string
 	//favicon []byte
 	desc           string
 	successHistory []bool
+}
+
+func (s *Site) Nines() string {
+	trues := 0  //uptime
+	falses := 0 //downtime
+	for _, v := range s.successHistory {
+		if v {
+			trues += 1
+		} else {
+			falses += 1
+		}
+	}
+	s.uptime = (trues + falses) / trues
+	s.downtime = (trues + falses) / falses
+	r := "<div class=\"" + s.url + "\"" + ">"
+	r += "<p>" + strconv.Itoa(s.uptime)
+	r += "</p>"
+	r += "<p>" + strconv.Itoa(s.downtime)
+	r += "</p>"
+	r += "</div>"
+	return r
 }
 
 func (s *Site) HTML() string {
@@ -33,24 +61,35 @@ func (s *Site) HTML() string {
 	}
 	r += s.title
 	r += "</h3>\n"
-	r += "<p>  URL: " + s.url
-	r += "</p>\n"
-	r += "<p>  Description: " + s.desc
-	r += "</p>\n"
-	r += "<p>  Destination: " + s.dest
-	r += "</p>\n"
+	r += "<div class=\"" + s.url + " url\">  URL: " + s.url
+	r += "</div>\n"
+	r += "<div class=\"" + s.url + " base32\">  Base32: " + s.base32[len(s.base32)-1] + ".b32.i2p"
+	r += "</div>\n"
+	r += "<div class=\"" + s.url + " desc\">  Description: " + s.desc
+	r += "</div>\n"
+	r += "<div class=\"" + s.url + " dest\">  Destination: " + s.dest[len(s.dest)-1]
+	if len(s.dest) > 1 && s.dest[len(s.dest)-1] != s.dest[len(s.dest)-2] {
+		r += "<div class=\"updated\">This URL has been updated since we last checked.</div>"
+	}
+	r += "</div>\n"
 	r += "</div>\n"
 	return r
 }
 
 func (s *Site) JsonString() string {
 	var r string
+	changed := "no"
+	if len(s.dest) > 1 && s.dest[len(s.dest)-1] != s.dest[len(s.dest)-2] {
+		changed = "yes"
+	}
 	r = "{" +
-		"url:" + s.url +
-		"dest:" + s.dest +
-		"title:" + s.title +
-		"desc:" + s.url +
-		"url:" + s.url +
+		"url: \"" + s.url + "\"" +
+		"dest: \"" + s.dest[len(s.dest)-1] + "\"" +
+		"b32: \"" + s.base32[len(s.base32)-1] + "\"" +
+		"title: \"" + s.title + "\"" +
+		"desc: \"" + s.desc + "\"" +
+		"changed: \"" + changed + "\n" +
+		"url: \"" + s.url + "\"" +
 		"}"
 	return r
 }
@@ -65,7 +104,7 @@ type Check struct {
 	up        bool
 }
 
-func LoadHostsFile(hostsfile string) ([]Site, error) {
+func (c *Check) LoadHostsFile(hostsfile string) ([]Site, error) {
 	hostbytes, err := ioutil.ReadFile(hostsfile)
 	if err != nil {
 		return nil, err
@@ -79,13 +118,19 @@ func LoadHostsFile(hostsfile string) ([]Site, error) {
 			if u, err := Validate(splitpair[0]); err != nil {
 				return nil, err
 			} else {
-				sites = append(
-					sites,
-					Site{
-						url:  u,
-						dest: splitpair[1],
-					},
-				)
+				b32, err := i2pconv.I2p64to32(splitpair[1])
+				if err == nil {
+					sites = append(
+						sites,
+						Site{
+							url:    u,
+							dest:   append([]string{}, splitpair[1]),
+							base32: append([]string{}, b32),
+						},
+					)
+				} else {
+					fmt.Printf("%s", err)
+				}
 				fmt.Printf("LoadHostsFile: (%v)loaded %s\n", index, splitpair[0])
 			}
 		}
@@ -111,8 +156,15 @@ func Validate(u string) (string, error) {
 	return u, nil
 }
 
+// TODO: Buffer should be done differently if I want to do requests like this,
+// or maybe sites should share a tunnel, or maybe I just use the HTTP proxy
+// instead.
+
+
+//AsyncGet is a misnomer, it has to be done in order for now.
 func (c *Check) AsyncGet(index int, site Site) {
-	_, err := c.Client.Get(site.url)
+	var err error
+	_, err = c.Client.Get(site.url)
 	if err != nil {
 		fmt.Printf("the eepSite appears to be down: %v %s\n", index, err)
 		site.successHistory = append(site.successHistory, false)
@@ -125,7 +177,10 @@ func (c *Check) AsyncGet(index int, site Site) {
 func (c *Check) CheckAll() {
 	for index, site := range c.sites {
 		log.Printf("Checking URL: %s", site.url)
-		go c.AsyncGet(index, site)
+		c.AsyncGet(index, site)
+		if index != 0 && (index%5) == 0 {
+			time.Sleep(time.Minute)
+		}
 	}
 }
 
