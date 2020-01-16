@@ -60,16 +60,18 @@ func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
 }
 
 func (c *Check) CheckLoop() {
-	time.Sleep(time.Second * 15)
+	time.Sleep(time.Minute * 10)
 	for {
 		c.CheckAll()
-		time.Sleep(time.Minute * 100)
+		time.Sleep(time.Minute * 180)
 	}
 }
 
 func (c *Check) Serve() error {
 	go c.Parent()
-	go c.ParentHTTP()
+	if c.RegularProxy != "" {
+		go c.ParentHTTP()
+	}
 	go c.CheckLoop()
 	fmt.Printf("Starting web server", c.Target())
 	if err := http.ListenAndServe(c.Target(), c); err != nil {
@@ -94,7 +96,12 @@ func NewSAMCheckerFromOptions(opts ...func(*Check) error) (*Check, error) {
 		}
 	}
 	s.SAMForwarder.Config().SaveFile = true
-	proxyURL, err := url.Parse("http://" + s.SAMHTTPProxy.Target())
+	var proxyURL *url.URL
+	if s.RegularProxy != "no" {
+		proxyURL, err = url.Parse("http://" + s.RegularProxy)
+	} else {
+		proxyURL, err = url.Parse("http://" + s.SAMHTTPProxy.Target())
+	}
 	if err != nil {
 		return nil, err
 	}

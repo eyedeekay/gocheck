@@ -111,6 +111,7 @@ type Check struct {
 	SAMHTTPProxy *i2pbrowserproxy.SAMMultiProxy
 	*http.Transport
 	*http.Client
+	RegularProxy string
 
 	sites     []Site
 	hostsfile string

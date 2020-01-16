@@ -38,6 +38,7 @@ var cfg = &tls.Config{
 var (
 	host               = flag.String("a", "127.0.0.1", "hostname to serve on")
 	port               = flag.String("p", "9778", "port to serve locally on")
+	otherproxy         = flag.String("h", "127.0.0.1:4444", "Use an external HTTP Proxy(Set this option to 'no' to use SAM")
 	samhost            = flag.String("sh", "127.0.0.1", "sam host to connect to")
 	samport            = flag.String("sp", "7656", "sam port to connect to")
 	directory          = flag.String("d", "./www", "the directory of static files to host(default ./www)")
@@ -71,7 +72,9 @@ func main() {
 	hostspath := user.HomeDir + "/.i2p/hosts.txt"
 	hostsfile := flag.String("hosts", hostspath, "Hosts file to use.")
 	flag.Parse()
-	var eepsite *gocheck.Check
+	eepsite := &gocheck.Check{
+		RegularProxy: *otherproxy,
+	}
 	config := i2ptunconf.NewI2PBlankTunConf()
 	if *iniFile != "none" {
 		var err error
