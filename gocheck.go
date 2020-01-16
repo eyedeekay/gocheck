@@ -89,7 +89,7 @@ func (s *Site) JSONUp() string {
 }
 
 func (s *Site) HTML() string {
-	r := "<span id=\"" + s.url + "\" class=\"site " s.Up()"\">\n"
+	r := "<span id=\"" + s.url + "\" class=\"site " + s.Up() + "\">\n"
 	r += "<h3>"
 	if s.title == "" {
 		s.title = s.url
