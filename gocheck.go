@@ -235,11 +235,6 @@ func (c *Check) AsyncGet(index int, site *Site) {
 	log.Println("CHECKING UPNESS")
 	if err != nil {
 		fmt.Printf("the eepSite appears to be down: %v, %s\n", index, err.Error())
-		if err.Error() == "EOF" {
-			fmt.Printf("the eepSite is up: %v %s\n", index, err)
-			site.successHistory = append(site.successHistory, true)
-			return
-		}
 		site.successHistory = append(site.successHistory, false)
 	} else {
 		fmt.Printf("the eepSite is up: %v %s\n", index, err)
