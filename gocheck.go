@@ -56,12 +56,14 @@ func (s *Site) Nines() string {
 }
 
 func (s *Site) Up() string {
+	log.Println("Length of history", len(s.successHistory))
 	if len(s.successHistory) > 0 {
 		if s.successHistory[len(s.successHistory)-1] {
 			return "true"
 		}
+		return "false"
 	}
-	return "false or unknown"
+	return "unknown"
 }
 
 func (s *Site) HTML() string {
@@ -91,16 +93,16 @@ func (s *Site) JsonString() string {
 	if len(s.dest) > 1 && s.dest[len(s.dest)-1] != s.dest[len(s.dest)-2] {
 		changed = "yes"
 	}
-	r = "{" +
-		"\"url\": \"" + s.url + "\"" +
-		"\"dest\": \"" + s.dest[len(s.dest)-1] + "\"" +
-		"\"b32\": \"" + s.base32[len(s.base32)-1] + "\"" +
-		"\"title\": \"" + s.title + "\"" +
-		"\"desc\": \"" + s.desc + "\"" +
-		"\"up\": \" \"" + s.Up() + "\"" +
-		"\"changed\": \"" + changed + "\"\n" +
-		"\"url: \"" + s.url + "\"" +
-		"}"
+	r = "{\n" +
+		"  \"url\": \"" + s.url + "\",\n" +
+		"  \"dest\": \"" + s.dest[len(s.dest)-1] + "\",\n" +
+		"  \"b32\": \"" + s.base32[len(s.base32)-1] + "\",\n" +
+		"  \"title\": \"" + s.title + "\",\n" +
+		"  \"desc\": \"" + s.desc + "\",\n" +
+		"  \"up\": \"" + s.Up() + "\",\n" +
+		"  \"changed\": \"" + changed + "\",\n" +
+		"  \"url: \"" + s.url + "\"\n" +
+		"}\n"
 	return r
 }
 
@@ -228,10 +230,16 @@ func Validate(u string) (string, error) {
 // instead.
 
 //AsyncGet is a misnomer, it has to be done in order for now.
-func (c *Check) AsyncGet(index int, site Site) {
+func (c *Check) AsyncGet(index int, site *Site) {
 	_, err := c.Client.Get(site.url)
+	log.Println("CHECKING UPNESS")
 	if err != nil {
-		fmt.Printf("the eepSite appears to be down: %v %s\n", index, err)
+		fmt.Printf("the eepSite appears to be down: %v, %s\n", index, err.Error())
+		if err.Error() == "EOF" {
+			fmt.Printf("the eepSite is up: %v %s\n", index, err)
+			site.successHistory = append(site.successHistory, true)
+			return
+		}
 		site.successHistory = append(site.successHistory, false)
 	} else {
 		fmt.Printf("the eepSite is up: %v %s\n", index, err)
@@ -242,19 +250,21 @@ func (c *Check) AsyncGet(index int, site Site) {
 func (c *Check) CheckAll() {
 	for index, site := range c.sites {
 		log.Printf("Checking URL: %s", site.url)
-		c.AsyncGet(index, site)
-		/*if (index % 5) == 0 {
-			time.Sleep(time.Minute)
-		}*/
+		c.AsyncGet(index, &site)
 	}
 }
 
-func (c *Check) QuerySite(site string) string {
-	if u, err := Validate(site); err != nil {
+func (c *Check) QuerySite(s string) string {
+	if u, err := Validate(s); err != nil {
 		return "Not a valid URL for checking"
 	} else {
 		for index, site := range c.sites {
-			if site.url == u {
+			u2, err := Validate(site.url)
+			if err != nil {
+				return "Invalid URL found in DB"
+			}
+			if u2 == u {
+				c.AsyncGet(index, &site)
 				fmt.Printf("The site was found at %v", index)
 				return site.JsonString()
 			}

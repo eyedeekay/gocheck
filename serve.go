@@ -40,7 +40,7 @@ func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
 		return
 	}
 	if strings.Replace(rq.URL.Path, "/", "", -1) != "" {
-		query := strings.SplitN(rq.URL.Path, "/", 1)
+		query := strings.SplitN(url, "/", 1)
 		fmt.Fprintf(rw, c.QuerySite(query[0]))
 	} else {
 		fmt.Fprintf(rw, "<!DOCTYPE html>")
@@ -104,6 +104,7 @@ func NewSAMCheckerFromOptions(opts ...func(*Check) error) (*Check, error) {
 		Proxy: proxy,
 	}
 	s.Client = &http.Client{
+		Timeout:   time.Duration(time.Minute * 5),
 		Transport: s.Transport,
 	}
 
