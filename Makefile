@@ -9,6 +9,7 @@ check: build
 
 fmt:
 	gofmt -w -s *.go */*.go
+	prettier --write script.js
 
 force-check:
 	./init.sh
