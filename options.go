@@ -131,6 +131,14 @@ func SetName(s string) func(*Check) error {
 	}
 }
 
+//SetProxy sets the host of the Check's SAM bridge
+func SetProxy(s string) func(*Check) error {
+	return func(c *Check) error {
+		c.RegularProxy = s
+		return nil
+	}
+}
+
 //SetInLength sets the number of hops inbound
 func SetInLength(u int) func(*Check) error {
 	return func(c *Check) error {

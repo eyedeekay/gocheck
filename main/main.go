@@ -133,6 +133,7 @@ func main() {
 		gocheck.SetAccessListType(config.AccessListType),
 		gocheck.SetAccessList(config.AccessList),
 		gocheck.SetHostsFile(*hostsfile),
+		gocheck.SetProxy(*otherproxy),
 	)
 	if err != nil {
 		log.Fatal(err)
