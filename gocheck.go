@@ -66,6 +66,19 @@ func (s *Site) Up() string {
 	return "unknown"
 }
 
+func (s *Site) JSONUp() string {
+	a := "{\n"
+	for _, s := range s.successHistory {
+		if s {
+			a += " true,\n"
+		} else {
+			a += " false,\n"
+		}
+	}
+	a += "}"
+	return strings.TrimSuffix(a, ",}") + " }"
+}
+
 func (s *Site) HTML() string {
 	r := "<span id=\"" + s.url + "\" class=\"site\">\n"
 	r += "<h3>"
@@ -99,7 +112,7 @@ func (s *Site) JsonString() string {
 		"  \"b32\": \"" + s.base32[len(s.base32)-1] + "\",\n" +
 		"  \"title\": \"" + s.title + "\",\n" +
 		"  \"desc\": \"" + s.desc + "\",\n" +
-		"  \"up\": \"" + s.Up() + "\",\n" +
+		"  \"up\": \"" + s.JSONUp() + "\",\n" +
 		"  \"changed\": \"" + changed + "\",\n" +
 		"  \"url: \"" + s.url + "\"\n" +
 		"}\n"
