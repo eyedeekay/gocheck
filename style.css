@@ -28,3 +28,12 @@ h1, h2, h3 {
 .hidden{
     display: none;
 }
+.false{
+    display: inline-block;
+}
+.true{
+    display: inline-block;
+}
+.unknown{
+    display: inline-block;
+}
