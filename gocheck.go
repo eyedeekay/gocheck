@@ -258,16 +258,18 @@ func (c *Check) AsyncGet(index int, site *Site) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		title := doc.Find("title").Text()
-		if strings.TrimSpace(title) == "" {
-			site.title = strings.TrimSpace(title)
+		title := strings.TrimSpace(doc.Find("title").Text())
+		if title != "" {
+			log.Println(title)
+			site.title = title
 		}
 		desc := doc.Find("meta[name=description]")
 		content, ok := desc.Attr("content")
 		if ok {
 			site.desc = strings.TrimSpace(content)
+			log.Println(strings.TrimSpace(content))
 		}
-		fmt.Printf("the eepSite is up: %d %b, %s %s\n", index, ok, title, content)
+		fmt.Printf("the eepSite is up: index=%d, title=\"%s\", desc=\"%s\", history=%d\n", index, site.title, site.desc, len(site.successHistory))
 	} else {
 		fmt.Printf("the eepSite appears to be down: %v, %s\n", index, res.StatusCode)
 		site.successHistory = append(site.successHistory, false)
@@ -291,7 +293,7 @@ func (c *Check) QuerySite(s string) string {
 				return "Invalid URL found in DB"
 			}
 			if u2 == u {
-				c.AsyncGet(index, &site)
+				c.AsyncGet(index, &c.sites[index])
 				fmt.Printf("The site was found at %v", index)
 				return site.JsonString()
 			}
