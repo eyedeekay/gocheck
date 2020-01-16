@@ -1,6 +1,7 @@
 package gocheck
 
 import (
+	"github.com/PuerkitoBio/goquery"
 	"github.com/eyedeekay/httptunnel/multiproxy"
 	"github.com/eyedeekay/i2pasta/convert"
 	"github.com/eyedeekay/sam-forwarder/config"
@@ -70,13 +71,13 @@ func (s *Site) JSONUp() string {
 	a := "{\n"
 	for _, s := range s.successHistory {
 		if s {
-			a += " true,\n"
+			a += "    true,\n"
 		} else {
-			a += " false,\n"
+			a += "    false,\n"
 		}
 	}
 	a += "}"
-	return strings.TrimSuffix(a, ",}") + " }"
+	return strings.TrimSuffix(a, ",\n}") + "\n  }"
 }
 
 func (s *Site) HTML() string {
@@ -112,7 +113,7 @@ func (s *Site) JsonString() string {
 		"  \"b32\": \"" + s.base32[len(s.base32)-1] + "\",\n" +
 		"  \"title\": \"" + s.title + "\",\n" +
 		"  \"desc\": \"" + s.desc + "\",\n" +
-		"  \"up\": \"" + s.JSONUp() + "\",\n" +
+		"  \"up\": " + s.JSONUp() + ",\n" +
 		"  \"changed\": \"" + changed + "\",\n" +
 		"  \"url: \"" + s.url + "\"\n" +
 		"}\n"
@@ -245,14 +246,31 @@ func Validate(u string) (string, error) {
 
 //AsyncGet is a misnomer, it has to be done in order for now.
 func (c *Check) AsyncGet(index int, site *Site) {
-	_, err := c.Client.Get(site.url)
+	res, err := c.Client.Get(site.url)
 	log.Println("CHECKING UPNESS")
 	if err != nil {
-		fmt.Printf("the eepSite appears to be down: %v, %s\n", index, err.Error())
-		site.successHistory = append(site.successHistory, false)
-	} else {
-		fmt.Printf("the eepSite is up: %v %s\n", index, err)
+		return
+	}
+	defer res.Body.Close()
+	if res.StatusCode == 200 {
 		site.successHistory = append(site.successHistory, true)
+		doc, err := goquery.NewDocumentFromReader(res.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		title := doc.Find("title").Text()
+		if strings.TrimSpace(title) == "" {
+			site.title = strings.TrimSpace(title)
+		}
+		desc := doc.Find("meta[name=description]")
+		content, ok := desc.Attr("content")
+		if ok {
+			site.desc = strings.TrimSpace(content)
+		}
+		fmt.Printf("the eepSite is up: %d %b, %s %s\n", index, ok, title, content)
+	} else {
+		fmt.Printf("the eepSite appears to be down: %v, %s\n", index, res.StatusCode)
+		site.successHistory = append(site.successHistory, false)
 	}
 }
 
