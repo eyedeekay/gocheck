@@ -12,6 +12,7 @@ type Option func(*Check) error
 func SetFilePath(s string) func(*Check) error {
 	return func(c *Check) error {
 		c.SAMForwarder.Config().FilePath = s
+		c.SAMHTTPProxy.Config().FilePath = s
 		return nil
 	}
 }
@@ -29,9 +30,11 @@ func SetType(s string) func(*Check) error {
 	return func(c *Check) error {
 		if s == "http" {
 			c.SAMForwarder.Config().Type = s
+			c.SAMHTTPProxy.Config().Type = s
 			return nil
 		} else {
 			c.SAMForwarder.Config().Type = "server"
+			c.SAMHTTPProxy.Config().Type = "httpclient"
 			return nil
 		}
 	}
@@ -63,6 +66,7 @@ func SetSigType(s string) func(*Check) error {
 func SetSaveFile(b bool) func(*Check) error {
 	return func(c *Check) error {
 		c.SAMForwarder.Config().SaveFile = b
+		c.SAMHTTPProxy.Config().SaveFile = b
 		return nil
 	}
 }
@@ -71,6 +75,7 @@ func SetSaveFile(b bool) func(*Check) error {
 func SetHost(s string) func(*Check) error {
 	return func(c *Check) error {
 		c.SAMForwarder.Config().TargetHost = s
+		c.SAMHTTPProxy.Config().TargetHost = s
 		return nil
 	}
 }
@@ -82,8 +87,10 @@ func SetPort(s string) func(*Check) error {
 		if err != nil {
 			return fmt.Errorf("Invalid TCP Server Target Port %s; non-number ", s)
 		}
+		clientport := port + 1
 		if port < 65536 && port > -1 {
 			c.SAMForwarder.Config().TargetPort = s
+			c.SAMHTTPProxy.Config().TargetPort = strconv.Itoa(clientport)
 			return nil
 		}
 		return fmt.Errorf("Invalid port")
@@ -94,6 +101,7 @@ func SetPort(s string) func(*Check) error {
 func SetSAMHost(s string) func(*Check) error {
 	return func(c *Check) error {
 		c.SAMForwarder.Config().SamHost = s
+		c.SAMHTTPProxy.Config().SamHost = s
 		return nil
 	}
 }
@@ -107,6 +115,7 @@ func SetSAMPort(s string) func(*Check) error {
 		}
 		if port < 65536 && port > -1 {
 			c.SAMForwarder.Config().SamPort = s
+			c.SAMHTTPProxy.Config().SamPort = s
 			return nil
 		}
 		return fmt.Errorf("Invalid port")
@@ -117,6 +126,7 @@ func SetSAMPort(s string) func(*Check) error {
 func SetName(s string) func(*Check) error {
 	return func(c *Check) error {
 		c.SAMForwarder.Config().TunName = s
+		c.SAMHTTPProxy.Config().TunName = s + "httpclient"
 		return nil
 	}
 }
@@ -126,6 +136,7 @@ func SetInLength(u int) func(*Check) error {
 	return func(c *Check) error {
 		if u < 7 && u >= 0 {
 			c.SAMForwarder.Config().InLength = u
+			c.SAMHTTPProxy.Config().InLength = u
 			return nil
 		}
 		return fmt.Errorf("Invalid inbound tunnel length")
@@ -137,6 +148,7 @@ func SetOutLength(u int) func(*Check) error {
 	return func(c *Check) error {
 		if u < 7 && u >= 0 {
 			c.SAMForwarder.Config().OutLength = u
+			c.SAMHTTPProxy.Config().OutLength = u
 			return nil
 		}
 		return fmt.Errorf("Invalid outbound tunnel length")
@@ -148,6 +160,7 @@ func SetInVariance(i int) func(*Check) error {
 	return func(c *Check) error {
 		if i < 7 && i > -7 {
 			c.SAMForwarder.Config().InVariance = i
+			c.SAMHTTPProxy.Config().InVariance = i
 			return nil
 		}
 		return fmt.Errorf("Invalid inbound tunnel length")
@@ -159,6 +172,7 @@ func SetOutVariance(i int) func(*Check) error {
 	return func(c *Check) error {
 		if i < 7 && i > -7 {
 			c.SAMForwarder.Config().OutVariance = i
+			c.SAMHTTPProxy.Config().OutVariance = i
 			return nil
 		}
 		return fmt.Errorf("Invalid outbound tunnel variance")
@@ -170,6 +184,7 @@ func SetInQuantity(u int) func(*Check) error {
 	return func(c *Check) error {
 		if u <= 16 && u > 0 {
 			c.SAMForwarder.Config().InQuantity = u
+			c.SAMHTTPProxy.Config().InQuantity = u
 			return nil
 		}
 		return fmt.Errorf("Invalid inbound tunnel quantity")
@@ -181,6 +196,7 @@ func SetOutQuantity(u int) func(*Check) error {
 	return func(c *Check) error {
 		if u <= 16 && u > 0 {
 			c.SAMForwarder.Config().OutQuantity = u
+			c.SAMHTTPProxy.Config().OutQuantity = u
 			return nil
 		}
 		return fmt.Errorf("Invalid outbound tunnel quantity")
@@ -192,6 +208,7 @@ func SetInBackups(u int) func(*Check) error {
 	return func(c *Check) error {
 		if u < 6 && u >= 0 {
 			c.SAMForwarder.Config().InBackupQuantity = u
+			c.SAMHTTPProxy.Config().InBackupQuantity = u
 			return nil
 		}
 		return fmt.Errorf("Invalid inbound tunnel backup quantity")
@@ -203,6 +220,7 @@ func SetOutBackups(u int) func(*Check) error {
 	return func(c *Check) error {
 		if u < 6 && u >= 0 {
 			c.SAMForwarder.Config().OutBackupQuantity = u
+			c.SAMHTTPProxy.Config().OutBackupQuantity = u
 			return nil
 		}
 		return fmt.Errorf("Invalid outbound tunnel backup quantity")
@@ -212,11 +230,8 @@ func SetOutBackups(u int) func(*Check) error {
 //SetEncrypt tells the router to use an encrypted leaseset
 func SetEncrypt(b bool) func(*Check) error {
 	return func(c *Check) error {
-		if b {
-			c.SAMForwarder.Config().EncryptLeaseSet = true
-			return nil
-		}
-		c.SAMForwarder.Config().EncryptLeaseSet = false
+		c.SAMForwarder.Config().EncryptLeaseSet = b
+		c.SAMHTTPProxy.Config().EncryptLeaseSet = b
 		return nil
 	}
 }
@@ -225,6 +240,7 @@ func SetEncrypt(b bool) func(*Check) error {
 func SetLeaseSetKey(s string) func(*Check) error {
 	return func(c *Check) error {
 		c.SAMForwarder.Config().LeaseSetKey = s
+		c.SAMHTTPProxy.Config().LeaseSetKey = s
 		return nil
 	}
 }
@@ -233,6 +249,7 @@ func SetLeaseSetKey(s string) func(*Check) error {
 func SetLeaseSetPrivateKey(s string) func(*Check) error {
 	return func(c *Check) error {
 		c.SAMForwarder.Config().LeaseSetPrivateKey = s
+		c.SAMHTTPProxy.Config().LeaseSetPrivateKey = s
 		return nil
 	}
 }
@@ -241,6 +258,7 @@ func SetLeaseSetPrivateKey(s string) func(*Check) error {
 func SetLeaseSetPrivateSigningKey(s string) func(*Check) error {
 	return func(c *Check) error {
 		c.SAMForwarder.Config().LeaseSetPrivateSigningKey = s
+		c.SAMHTTPProxy.Config().LeaseSetPrivateSigningKey = s
 		return nil
 	}
 }
@@ -249,6 +267,7 @@ func SetLeaseSetPrivateSigningKey(s string) func(*Check) error {
 func SetMessageReliability(s string) func(*Check) error {
 	return func(c *Check) error {
 		c.SAMForwarder.Config().MessageReliability = s
+		c.SAMHTTPProxy.Config().MessageReliability = s
 		return nil
 	}
 }
@@ -256,11 +275,8 @@ func SetMessageReliability(s string) func(*Check) error {
 //SetAllowZeroIn tells the tunnel to accept zero-hop peers
 func SetAllowZeroIn(b bool) func(*Check) error {
 	return func(c *Check) error {
-		if b {
-			c.SAMForwarder.Config().InAllowZeroHop = true
-			return nil
-		}
-		c.SAMForwarder.Config().InAllowZeroHop = false
+		c.SAMForwarder.Config().InAllowZeroHop = b
+		c.SAMHTTPProxy.Config().InAllowZeroHop = b
 		return nil
 	}
 }
@@ -268,11 +284,8 @@ func SetAllowZeroIn(b bool) func(*Check) error {
 //SetAllowZeroOut tells the tunnel to accept zero-hop peers
 func SetAllowZeroOut(b bool) func(*Check) error {
 	return func(c *Check) error {
-		if b {
-			c.SAMForwarder.Config().OutAllowZeroHop = true
-			return nil
-		}
-		c.SAMForwarder.Config().OutAllowZeroHop = false
+		c.SAMForwarder.Config().OutAllowZeroHop = b
+		c.SAMHTTPProxy.Config().OutAllowZeroHop = b
 		return nil
 	}
 }
@@ -280,11 +293,8 @@ func SetAllowZeroOut(b bool) func(*Check) error {
 //SetCompress tells clients to use compression
 func SetCompress(b bool) func(*Check) error {
 	return func(c *Check) error {
-		if b {
-			c.SAMForwarder.Config().UseCompression = true
-			return nil
-		}
-		c.SAMForwarder.Config().UseCompression = false
+		c.SAMForwarder.Config().UseCompression = b
+		c.SAMHTTPProxy.Config().UseCompression = b
 		return nil
 	}
 }
@@ -292,11 +302,8 @@ func SetCompress(b bool) func(*Check) error {
 //SetFastRecieve tells clients to use compression
 func SetFastRecieve(b bool) func(*Check) error {
 	return func(c *Check) error {
-		if b {
-			c.SAMForwarder.Config().FastRecieve = true
-			return nil
-		}
-		c.SAMForwarder.Config().FastRecieve = false
+		c.SAMForwarder.Config().FastRecieve = b
+		c.SAMHTTPProxy.Config().FastRecieve = b
 		return nil
 	}
 }
@@ -304,11 +311,8 @@ func SetFastRecieve(b bool) func(*Check) error {
 //SetReduceIdle tells the connection to reduce it's tunnels during extended idle time.
 func SetReduceIdle(b bool) func(*Check) error {
 	return func(c *Check) error {
-		if b {
-			c.SAMForwarder.Config().ReduceIdle = true
-			return nil
-		}
-		c.SAMForwarder.Config().ReduceIdle = false
+		c.SAMForwarder.Config().ReduceIdle = b
+		c.SAMHTTPProxy.Config().ReduceIdle = false
 		return nil
 	}
 }
@@ -319,6 +323,7 @@ func SetReduceIdleTime(u int) func(*Check) error {
 		c.SAMForwarder.Config().ReduceIdleTime = 300000
 		if u >= 6 {
 			c.SAMForwarder.Config().ReduceIdleTime = (u * 60) * 1000
+			c.SAMHTTPProxy.Config().ReduceIdleTime = 3000000
 			return nil
 		}
 		return fmt.Errorf("Invalid reduce idle timeout(Measured in minutes) %v", u)
@@ -331,6 +336,7 @@ func SetReduceIdleTimeMs(u int) func(*Check) error {
 		c.SAMForwarder.Config().ReduceIdleTime = 300000
 		if u >= 300000 {
 			c.SAMForwarder.Config().ReduceIdleTime = u
+			c.SAMHTTPProxy.Config().ReduceIdleTime = 3000000
 			return nil
 		}
 		return fmt.Errorf("Invalid reduce idle timeout(Measured in milliseconds) %v", u)
@@ -342,6 +348,7 @@ func SetReduceIdleQuantity(u int) func(*Check) error {
 	return func(c *Check) error {
 		if u < 5 {
 			c.SAMForwarder.Config().ReduceIdleQuantity = u
+			c.SAMHTTPProxy.Config().ReduceIdleQuantity = u
 			return nil
 		}
 		return fmt.Errorf("Invalid reduce tunnel quantity")
@@ -351,10 +358,7 @@ func SetReduceIdleQuantity(u int) func(*Check) error {
 //SetCloseIdle tells the connection to close it's tunnels during extended idle time.
 func SetCloseIdle(b bool) func(*Check) error {
 	return func(c *Check) error {
-		if b {
-			c.SAMForwarder.Config().CloseIdle = true
-			return nil
-		}
+		c.SAMHTTPProxy.Config().CloseIdle = b
 		c.SAMForwarder.Config().CloseIdle = false
 		return nil
 	}
@@ -366,6 +370,7 @@ func SetCloseIdleTime(u int) func(*Check) error {
 		c.SAMForwarder.Config().CloseIdleTime = 300000
 		if u >= 6 {
 			c.SAMForwarder.Config().CloseIdleTime = (u * 60) * 1000
+			c.SAMHTTPProxy.Config().CloseIdleTime = 3000000
 			return nil
 		}
 		return fmt.Errorf("Invalid close idle timeout(Measured in minutes) %v", u)
@@ -378,6 +383,7 @@ func SetCloseIdleTimeMs(u int) func(*Check) error {
 		c.SAMForwarder.Config().CloseIdleTime = 300000
 		if u >= 300000 {
 			c.SAMForwarder.Config().CloseIdleTime = u
+			c.SAMHTTPProxy.Config().CloseIdleTime = 3000000
 			return nil
 		}
 		return fmt.Errorf("Invalid close idle timeout(Measured in milliseconds) %v", u)
@@ -437,6 +443,7 @@ func SetAccessList(s []string) func(*Check) error {
 func SetKeyFile(s string) func(*Check) error {
 	return func(c *Check) error {
 		c.SAMForwarder.Config().KeyFilePath = s
+		c.SAMHTTPProxy.Config().KeyFilePath = s
 		return nil
 	}
 }

@@ -13,6 +13,8 @@ github.com/eyedeekay/goSam v0.32.2 h1:85l6Ene+kZkqI7LJTn5pUMM0fK1sWki2qY7Oi2MKH+
 github.com/eyedeekay/goSam v0.32.2/go.mod h1:YIklxqKiJ3I5JNRgb5pM7VCQOSNDGnVulHnrKBbbECM=
 github.com/eyedeekay/httptunnel v0.0.0-20190831065052-9eab288b8a82/go.mod h1:VeXBZz04xj4eUGAcD8ygn2WFxY/dAvRbSNYMWoDzMxc=
 github.com/eyedeekay/httptunnel v0.0.0-20190831071439-0ff3d5f798fb/go.mod h1:SnCAM9CskhwSFkzDfh+H5yNTbvhcTeKekkuX0ejCcSk=
+github.com/eyedeekay/i2pasta v0.0.0-20180718213441-61a01d16ded0 h1:6SpoFakBIDb19zU0JyqfkqkkqEg1UEaoyHUIF6gsW04=
+github.com/eyedeekay/i2pasta v0.0.0-20180718213441-61a01d16ded0/go.mod h1:K3Ui6UIxbZzNWdRO+jZHcHaFnBJpsw/NIa+1WnViW+8=
 github.com/eyedeekay/i2pdig v0.0.0-20180718204453-a67cb46e2e5f/go.mod h1:Zp2JSsndmRykjDGbNS5QHnCYCLnOeYFvwuZFwsATz8k=
 github.com/eyedeekay/outproxy v0.0.0-20190908174238-22bd71d43733/go.mod h1:jUBr6XRbiuUBe/sSbVdO5upU4mp8842bdpXDsQY54Rc=
 github.com/eyedeekay/portcheck v0.0.0-20190218044454-bb8718669680/go.mod h1:8VVIH19/CU2VFJB8P6e58Mo9nvDqqKgllS0oQY3F83U=

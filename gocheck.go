@@ -1,10 +1,12 @@
 package gocheck
 
 import (
-	"github.com/eyedeekay/goSam"
+	"github.com/eyedeekay/httptunnel/multiproxy"
 	"github.com/eyedeekay/i2pasta/convert"
+	"github.com/eyedeekay/sam-forwarder/config"
 	"github.com/eyedeekay/sam-forwarder/interface"
 	"github.com/eyedeekay/sam-forwarder/tcp"
+	"github.com/eyedeekay/sam3/i2pkeys"
 
 	"fmt"
 	"io/ioutil"
@@ -13,7 +15,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
+	//"time"
 )
 
 // TODO calculate approx 9's
@@ -53,25 +55,32 @@ func (s *Site) Nines() string {
 	return r
 }
 
+func (s *Site) Up() string {
+	if len(s.successHistory) > 0 {
+		if s.successHistory[len(s.successHistory)-1] {
+			return "true"
+		}
+	}
+	return "false or unknown"
+}
+
 func (s *Site) HTML() string {
-	r := "<div id=\"" + s.url + "\">\n"
+	r := "<span id=\"" + s.url + "\" class=\"site\">\n"
 	r += "<h3>"
 	if s.title == "" {
 		s.title = s.url
 	}
 	r += s.title
 	r += "</h3>\n"
-	r += "<div class=\"" + s.url + " url\">  URL: " + s.url
-	r += "</div>\n"
-	r += "<div class=\"" + s.url + " base32\">  Base32: " + s.base32[len(s.base32)-1] + ".b32.i2p"
-	r += "</div>\n"
-	r += "<div class=\"" + s.url + " desc\">  Description: " + s.desc
-	r += "</div>\n"
-	r += "<div class=\"" + s.url + " dest\">  Destination: " + s.dest[len(s.dest)-1]
+	r += "<div><span class=\"" + s.url + " label url\">  URL: </span> <span class=\"field\"><a href=\"" + s.url + "\">" + s.url + "</a></span></div>\n"
+	r += "<div><span class=\"" + s.url + " label base32\">  Base32: </span> <span class=\"field\"><a href=\"" + s.base32[len(s.base32)-1] + ".b32.i2p\">" + s.base32[len(s.base32)-1] + "</a>" + "</span></div>\n"
+	r += "<div><span class=\"" + s.url + " label desc\">  Description: </span> <span class=\"field\">" + s.desc + "</span></div>\n"
+	r += "<div><span class=\"" + s.url + " label stat\">  Alive: </span> <span class=\"field\">" + s.Up() + "</span></div>\n"
+	r += "<div><span class=\"" + s.url + " label dest\">  Destination: </span> <span class=\"field\">" + s.dest[len(s.dest)-1] + "</span></div>\n"
 	if len(s.dest) > 1 && s.dest[len(s.dest)-1] != s.dest[len(s.dest)-2] {
-		r += "<div class=\"updated\">This URL has been updated since we last checked.</div>"
+		r += "<div><span class=\" label updated\">Changed?:</span> <span class=\"field\">This URL has been updated since we last checked.</span></div>"
 	}
-	r += "</div>\n"
+	r += "</span>\n"
 	r += "</div>\n"
 	return r
 }
@@ -83,25 +92,83 @@ func (s *Site) JsonString() string {
 		changed = "yes"
 	}
 	r = "{" +
-		"url: \"" + s.url + "\"" +
-		"dest: \"" + s.dest[len(s.dest)-1] + "\"" +
-		"b32: \"" + s.base32[len(s.base32)-1] + "\"" +
-		"title: \"" + s.title + "\"" +
-		"desc: \"" + s.desc + "\"" +
-		"changed: \"" + changed + "\n" +
-		"url: \"" + s.url + "\"" +
+		"\"url\": \"" + s.url + "\"" +
+		"\"dest\": \"" + s.dest[len(s.dest)-1] + "\"" +
+		"\"b32\": \"" + s.base32[len(s.base32)-1] + "\"" +
+		"\"title\": \"" + s.title + "\"" +
+		"\"desc\": \"" + s.desc + "\"" +
+		"\"up\": \" \"" + s.Up() + "\"" +
+		"\"changed\": \"" + changed + "\"\n" +
+		"\"url: \"" + s.url + "\"" +
 		"}"
 	return r
 }
 
 type Check struct {
 	*samforwarder.SAMForwarder
+	SAMHTTPProxy *i2pbrowserproxy.SAMMultiProxy
 	*http.Transport
 	*http.Client
-	i2p       *goSam.Client
+
 	sites     []Site
 	hostsfile string
 	up        bool
+}
+
+func (c *Check) Base32() string {
+	return c.SAMForwarder.Base32()
+}
+
+func (c *Check) Base32Readable() string {
+	return c.SAMForwarder.Base32Readable()
+}
+
+func (c *Check) Base64() string {
+	return c.SAMForwarder.Base64()
+}
+
+func (c *Check) Cleanup() {
+	c.SAMForwarder.Cleanup()
+}
+
+func (c *Check) Close() error {
+	return c.SAMForwarder.Close()
+}
+
+func (c *Check) Config() *i2ptunconf.Conf {
+	return c.SAMForwarder.Config()
+}
+
+func (c *Check) GetType() string {
+	return "uptimer"
+}
+
+func (c *Check) ID() string {
+	return c.SAMForwarder.ID()
+}
+
+func (c *Check) Print() string {
+	return c.SAMForwarder.Print()
+}
+
+func (c *Check) Props() map[string]string {
+	return c.SAMForwarder.Props()
+}
+
+func (c *Check) Keys() i2pkeys.I2PKeys {
+	return c.SAMForwarder.Keys()
+}
+
+func (c *Check) Search(s string) string {
+	return c.SAMForwarder.Search(s)
+}
+
+func (c *Check) Target() string {
+	return c.SAMForwarder.Target()
+}
+
+func (c *Check) Up() bool {
+	return c.SAMForwarder.Up()
 }
 
 func (c *Check) LoadHostsFile(hostsfile string) ([]Site, error) {
@@ -160,11 +227,9 @@ func Validate(u string) (string, error) {
 // or maybe sites should share a tunnel, or maybe I just use the HTTP proxy
 // instead.
 
-
 //AsyncGet is a misnomer, it has to be done in order for now.
 func (c *Check) AsyncGet(index int, site Site) {
-	var err error
-	_, err = c.Client.Get(site.url)
+	_, err := c.Client.Get(site.url)
 	if err != nil {
 		fmt.Printf("the eepSite appears to be down: %v %s\n", index, err)
 		site.successHistory = append(site.successHistory, false)
@@ -178,9 +243,9 @@ func (c *Check) CheckAll() {
 	for index, site := range c.sites {
 		log.Printf("Checking URL: %s", site.url)
 		c.AsyncGet(index, site)
-		if index != 0 && (index%5) == 0 {
+		/*if (index % 5) == 0 {
 			time.Sleep(time.Minute)
-		}
+		}*/
 	}
 }
 
@@ -207,7 +272,11 @@ func (s *Check) Load() (samtunnel.SAMTunnel, error) {
 		return nil, e
 	}
 	s.SAMForwarder = f.(*samforwarder.SAMForwarder)
-	//s.mark = markdown.New(markdown.XHTMLOutput(true))
+	g, e := s.SAMHTTPProxy.Load()
+	if e != nil {
+		return nil, e
+	}
+	s.SAMHTTPProxy = g.(*i2pbrowserproxy.SAMMultiProxy)
 	s.up = true
 	fmt.Printf("Finished putting tunnel up")
 	return s, nil

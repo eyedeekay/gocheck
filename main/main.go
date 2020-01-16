@@ -137,7 +137,6 @@ func main() {
 
 	if eepsite != nil {
 		log.Println("Starting server")
-		eepsite.CheckAll()
 		if err = eepsite.Serve(); err != nil {
 			log.Fatal(err)
 		}
