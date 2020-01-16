@@ -107,7 +107,7 @@ func (c *Check) OnePage(rw http.ResponseWriter, rq *http.Request, page string) {
 func (c *Check) AllPages(rw http.ResponseWriter, rq *http.Request) {
 	for index, site := range c.sites {
 		if len(site.successHistory) > 0 {
-			fmt.Fprintf(rw, "<div class=\"idnum " + site.Up() + "\" id=\"%v\">%v: %s\n", index, index, site.HTML())
+			fmt.Fprintf(rw, "<div class=\"idnum "+site.Up()+"\" id=\"%v\">%v: %s\n", index, index, site.HTML())
 		}
 	}
 }
