@@ -1,5 +1,6 @@
 
 document.addEventListener("click", clickEvent => {
+  console.log("Hiding a class of site");
   if (clickEvent.target.id === "alive") {
     showAliveOnly()
   }
