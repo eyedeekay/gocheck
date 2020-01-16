@@ -1,6 +1,6 @@
 
 document.addEventListener("click", clickEvent => {
-  console.log("Hiding a class of site");
+  console.log("Showing a class of site");
   if (clickEvent.target.id === "alive") {
     showAliveOnly()
   }
@@ -13,6 +13,7 @@ document.addEventListener("click", clickEvent => {
 });
 
 function showAliveOnly() {
+  console.log("Showing alive only");
   var selects = document.getElementsByTagName("false");
   for(var i =0, il = selects.length;i<il;i++){
      selects[i].addClass("hidden");
@@ -28,6 +29,7 @@ function showAliveOnly() {
 }
 
 function showDeadOnly() {
+  console.log("Showing dead only");
   var selects = document.getElementsByTagName("true");
   for(var i =0, il = selects.length;i<il;i++){
      selects[i].addClass("hidden");
@@ -43,6 +45,7 @@ function showDeadOnly() {
 }
 
 function showUnknownOnly() {
+  console.log("Showing unknown only");
   var selects = document.getElementsByTagName("false");
   for(var i =0, il = selects.length;i<il;i++){
      selects[i].addClass("hidden");
