@@ -14,17 +14,17 @@ document.addEventListener("click", clickEvent => {
 function showAliveOnly() {
   console.log("Showing alive only");
   var selects = document.getElementsByClassName("false");
-  for (var i = 0, il = selects.length; i < il; i++) {
+  for (let select in selects) {
     console.log("adding class hidden");
     selects[i].addClass("hidden");
   }
   var selects = document.getElementsByClassName("unknown");
-  for (var i = 0, il = selects.length; i < il; i++) {
+  for (let select in selects) {
     console.log("adding class hidden");
     selects[i].addClass("hidden");
   }
   var selects = document.getElementsByClassName("true");
-  for (var i = 0, il = selects.length; i < il; i++) {
+  for (let select in selects) {
     console.log("removing class hidden");
     selects[i].removeClass("hidden");
   }
@@ -33,17 +33,17 @@ function showAliveOnly() {
 function showDeadOnly() {
   console.log("Showing dead only");
   var selects = document.getElementsByClassName("true");
-  for (var i = 0, il = selects.length; i < il; i++) {
+  for (let select in selects) {
     console.log("adding class hidden");
     selects[i].addClass("hidden");
   }
   var selects = document.getElementsByClassName("unknown");
-  for (var i = 0, il = selects.length; i < il; i++) {
+  for (let select in selects) {
     console.log("adding class hidden");
     selects[i].addClass("hidden");
   }
   var selects = document.getElementsByClassName("false");
-  for (var i = 0, il = selects.length; i < il; i++) {
+  for (let select in selects) {
     console.log("removing class hidden");
     selects[i].removeClass("hidden");
   }
@@ -52,17 +52,17 @@ function showDeadOnly() {
 function showUnknownOnly() {
   console.log("Showing unknown only");
   var selects = document.getElementsByClassName("false");
-  for (var i = 0, il = selects.length; i < il; i++) {
+  for (let select in selects) {
     console.log("adding class hidden");
     selects[i].addClass("hidden");
   }
   var selects = document.getElementsByClassName("true");
-  for (var i = 0, il = selects.length; i < il; i++) {
+  for (let select in selects) {
     console.log("adding class hidden");
     selects[i].addClass("hidden");
   }
   var selects = document.getElementsByClassName("unknown");
-  for (var i = 0, il = selects.length; i < il; i++) {
+  for (let select in selects) {
     selects[i].removeClass("hidden");
     console.log("removing class hidden");
   }
