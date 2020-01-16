@@ -60,7 +60,7 @@ func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
 }
 
 func (c *Check) CheckLoop() {
-	time.Sleep(time.Minute * 10)
+	time.Sleep(time.Second * 10)
 	for {
 		c.CheckAll()
 		time.Sleep(time.Minute * 180)

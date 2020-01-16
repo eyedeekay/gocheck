@@ -16,7 +16,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	//"time"
+	"time"
 )
 
 // TODO calculate approx 9's
@@ -279,7 +279,8 @@ func (c *Check) AsyncGet(index int, site *Site) {
 func (c *Check) CheckAll() {
 	for index, site := range c.sites {
 		log.Printf("Checking URL: %s", site.url)
-		c.AsyncGet(index, &site)
+		go c.AsyncGet(index, &site)
+		time.Sleep(time.Second * 20)
 	}
 }
 
