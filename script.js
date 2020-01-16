@@ -7,7 +7,7 @@ document.addEventListener("click", clickEvent => {
     showDeadOnly()
   }
   if (clickEvent.target.id === "unknown") {
-    return showUnknownOnly()
+    showUnknownOnly()
   }
 }
 
