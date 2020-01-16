@@ -1,0 +1,26 @@
+body {
+    color: #e6e6e7;
+    font-family: monospace;
+    background: #1F1A24;
+}
+h1, h2, h3 {
+    display: inline-block;
+}
+.label {
+    min-width: 20%;
+    max-width: 20%;
+    display: inline-block;
+    border: 1px solid #292929;
+}
+.idnum {
+    background: #1F1A24;
+    margin: 5%;
+    border: 1px solid #292929;
+}
+.field{
+    border: 1px solid #292929;
+    background:#332940;
+    min-width: 70%;
+    max-width: 70%;
+    display: inline-block;
+}
