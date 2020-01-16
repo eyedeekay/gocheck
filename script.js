@@ -9,7 +9,7 @@ document.addEventListener("click", clickEvent => {
   if (clickEvent.target.id === "unknown") {
     showUnknownOnly()
   }
-}
+});
 
 function showAliveOnly() {
   var selects = document.getElementsByTagName("false");
