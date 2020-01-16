@@ -2,6 +2,7 @@ body {
     color: #e6e6e7;
     font-family: monospace;
     background: #1F1A24;
+    word-wrap: break-word;
 }
 h1, h2, h3 {
     display: inline-block;

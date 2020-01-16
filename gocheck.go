@@ -56,18 +56,26 @@ func (s *Site) Nines() string {
 	return r
 }
 
+func (s *Site) HostPair() string {
+	return s.url + "=" + s.dest[len(s.dest)-1]
+}
+
 func (s *Site) Up() string {
-	log.Println("Length of history", len(s.successHistory))
-	if len(s.successHistory) > 0 {
-		if s.successHistory[len(s.successHistory)-1] {
-			return "true"
-		}
-		return "false"
+	//log.Println("Length of history", len(s.successHistory))
+	if len(s.successHistory) < 1 {
+		return "unknown"
 	}
-	return "unknown"
+
+	if s.successHistory[len(s.successHistory)-1] {
+		return "true"
+	}
+	return "false"
 }
 
 func (s *Site) JSONUp() string {
+	if len(s.successHistory) < 1 {
+		return "{}"
+	}
 	a := "{\n"
 	for _, s := range s.successHistory {
 		if s {
@@ -89,7 +97,7 @@ func (s *Site) HTML() string {
 	r += s.title
 	r += "</h3>\n"
 	r += "<div><span class=\"" + s.url + " label url\">  URL: </span> <span class=\"field\"><a href=\"" + s.url + "\">" + s.url + "</a></span></div>\n"
-	r += "<div><span class=\"" + s.url + " label base32\">  Base32: </span> <span class=\"field\"><a href=\"" + s.base32[len(s.base32)-1] + ".b32.i2p\">" + s.base32[len(s.base32)-1] + "</a>" + "</span></div>\n"
+	r += "<div><span class=\"" + s.url + " label base32\">  Base32: </span> <span class=\"field\"><a href=\"http://" + s.base32[len(s.base32)-1] + ".b32.i2p\">" + s.base32[len(s.base32)-1] + "</a>" + "</span></div>\n"
 	r += "<div><span class=\"" + s.url + " label desc\">  Description: </span> <span class=\"field\">" + s.desc + "</span></div>\n"
 	r += "<div><span class=\"" + s.url + " label stat\">  Alive: </span> <span class=\"field\">" + s.Up() + "</span></div>\n"
 	r += "<div><span class=\"" + s.url + " label dest\">  Destination: </span> <span class=\"field\">" + s.dest[len(s.dest)-1] + "</span></div>\n"
@@ -116,7 +124,7 @@ func (s *Site) JsonString() string {
 		"  \"up\": " + s.JSONUp() + ",\n" +
 		"  \"changed\": \"" + changed + "\",\n" +
 		"  \"url: \"" + s.url + "\"\n" +
-		"}\n"
+		"}"
 	return r
 }
 
@@ -188,6 +196,34 @@ func (c *Check) Up() bool {
 	return c.SAMForwarder.Up()
 }
 
+func (c *Check) ExportJsonArtifact() string {
+	export := "{"
+	for _, site := range c.sites {
+		export += site.JsonString() + ",\n"
+	}
+	export += "}"
+	return export
+}
+
+func (c *Check) ExportMiniJsonArtifact() string {
+	export := "{"
+	for _, site := range c.sites {
+		if len(site.successHistory) > 0 {
+			export += strings.Replace(site.JsonString(), "\n    ", "\n      ", -1) + ",\n"
+		}
+	}
+	export += "}"
+	return strings.TrimSuffix(export, "},\n}")
+}
+
+func (c *Check) ExportHostsFile() string {
+	export := ""
+	for _, site := range c.sites {
+		export += site.HostPair() + "\n"
+	}
+	return export
+}
+
 func (c *Check) LoadHostsFile(hostsfile string) ([]Site, error) {
 	hostbytes, err := ioutil.ReadFile(hostsfile)
 	if err != nil {
@@ -232,7 +268,7 @@ func Validate(u string) (string, error) {
 		return "", fmt.Errorf("Not an I2P domain")
 	}
 	if !strings.HasPrefix(u, "http") {
-		u = "http://" + u
+		u = strings.Replace("http://"+u, "///", "//", -1)
 	}
 	if _, err := url.Parse(u); err != nil {
 		return "", err
@@ -271,7 +307,7 @@ func (c *Check) AsyncGet(index int, site *Site) {
 		}
 		fmt.Printf("the eepSite is up: index=%d, title=\"%s\", desc=\"%s\", history=%d\n", index, site.title, site.desc, len(site.successHistory))
 	} else {
-		fmt.Printf("the eepSite appears to be down: %v, %s\n", index, res.StatusCode)
+		fmt.Printf("the eepSite appears to be down: %v, %v\n", index, res.StatusCode)
 		site.successHistory = append(site.successHistory, false)
 	}
 }

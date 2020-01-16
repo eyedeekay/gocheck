@@ -28,7 +28,7 @@ func (c *Check) ParentHTTP() {
 }
 
 func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
-	url := strings.Replace(rq.URL.Path, "/", "", -1)
+	url := strings.TrimPrefix(rq.URL.Path, "/")
 	if url == "style.css" {
 		file, err := ioutil.ReadFile("style.css")
 		if err == nil {
@@ -39,23 +39,76 @@ func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
 		}
 		return
 	}
-	if strings.Replace(rq.URL.Path, "/", "", -1) != "" {
+	if url == "script.js" {
+		file, err := ioutil.ReadFile("script.js")
+		if err == nil {
+			rw.Header().Set("Content-Type", "text/javascript")
+			fmt.Fprintf(rw, "%s", file)
+		} else {
+			log.Println(err)
+		}
+		return
+	}
+	if url == "hosts.txt" {
+		fmt.Fprintf(rw, "%s", c.ExportHostsFile())
+		return
+	}
+	if url == "export.json" {
+		fmt.Fprintf(rw, "%s", c.ExportJsonArtifact())
+		return
+	}
+	if url == "export-mini.json" {
+		fmt.Fprintf(rw, "%s", c.ExportMiniJsonArtifact())
+		return
+	}
+	log.Println("URL", url)
+	if url != "" {
 		query := strings.SplitN(url, "/", 1)
 		fmt.Fprintf(rw, c.QuerySite(query[0]))
+	} else if strings.HasPrefix(url, "web") {
+		c.DisplayPage(rw, rq, url)
 	} else {
-		fmt.Fprintf(rw, "<!DOCTYPE html>")
-		fmt.Fprintf(rw, "<html>")
-		fmt.Fprintf(rw, "<head>")
-		fmt.Fprintf(rw, "    <meta charset=\"utf-8\">")
-		fmt.Fprintf(rw, "    <link type=\"text/css\" href=\"style.css\" rel=\"stylesheet\">")
-		fmt.Fprintf(rw, "    <title>I2P Site Uptime Checker </title>")
-		fmt.Fprintf(rw, "</head>")
-		fmt.Fprintf(rw, "<body>")
-		for index, site := range c.sites {
+		c.DisplayPage(rw, rq, "")
+	}
+}
+
+func (c *Check) DisplayPage(rw http.ResponseWriter, rq *http.Request, page string) {
+	fmt.Fprintf(rw, "<!DOCTYPE html>")
+	fmt.Fprintf(rw, "<html>")
+	fmt.Fprintf(rw, "<head>")
+	fmt.Fprintf(rw, "    <meta charset=\"utf-8\">")
+	fmt.Fprintf(rw, "    <link type=\"text/css\" href=\"style.css\" rel=\"stylesheet\">")
+	fmt.Fprintf(rw, "    <title>I2P Site Uptime Checker </title>")
+	fmt.Fprintf(rw, "</head>")
+	fmt.Fprintf(rw, "<body>")
+	if page == "" {
+		c.AllPages(rw, rq)
+	} else {
+		c.OnePage(rw, rq, page)
+	}
+	fmt.Fprintf(rw, "<script src=\"script.js\"></script>")
+	fmt.Fprintf(rw, "</body>")
+	fmt.Fprintf(rw, "</html>")
+}
+
+func (c *Check) OnePage(rw http.ResponseWriter, rq *http.Request, page string) {
+	name, err := Validate(strings.TrimPrefix(page, "web"))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	for index, site := range c.sites {
+		if site.url == name {
 			fmt.Fprintf(rw, "<div class=\"idnum\" id=\"%v\">%v: %s\n", index, index, site.HTML())
 		}
-		fmt.Fprintf(rw, "</body>")
-		fmt.Fprintf(rw, "</html>")
+	}
+}
+
+func (c *Check) AllPages(rw http.ResponseWriter, rq *http.Request) {
+	for index, site := range c.sites {
+		if len(site.successHistory) > 0 {
+			fmt.Fprintf(rw, "<div class=\"idnum\" id=\"%v\">%v: %s\n", index, index, site.HTML())
+		}
 	}
 }
 
@@ -63,7 +116,7 @@ func (c *Check) CheckLoop() {
 	time.Sleep(time.Second * 10)
 	for {
 		c.CheckAll()
-		time.Sleep(time.Minute * 180)
+		time.Sleep(time.Minute * 60)
 	}
 }
 
