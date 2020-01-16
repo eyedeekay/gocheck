@@ -11,7 +11,7 @@ document.addEventListener("click", clickEvent => {
   }
 }
 
-function showAliveOnly(){
+function showAliveOnly() {
   var selects = document.getElementsByTagName("false");
   for(var i =0, il = selects.length;i<il;i++){
      selects[i].addClass("hidden");
@@ -26,7 +26,7 @@ function showAliveOnly(){
   }
 }
 
-function showDeadOnly(){
+function showDeadOnly() {
   var selects = document.getElementsByTagName("true");
   for(var i =0, il = selects.length;i<il;i++){
      selects[i].addClass("hidden");
@@ -41,7 +41,7 @@ function showDeadOnly(){
   }
 }
 
-function showUnknownOnly(){
+function showUnknownOnly() {
   var selects = document.getElementsByTagName("false");
   for(var i =0, il = selects.length;i<il;i++){
      selects[i].addClass("hidden");

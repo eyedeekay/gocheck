@@ -82,8 +82,8 @@ func (c *Check) DisplayPage(rw http.ResponseWriter, rq *http.Request, page strin
 	fmt.Fprintf(rw, "</head>")
 	fmt.Fprintf(rw, "<body>")
     fmt.Fprintf(rw, "<a id=\"alive\" href=\"#\">Show Alive Only</a>")
-    fmt.Fprintf(rw, "<a id=\"dead\" href=\"#\">Show Alive Only</a>")
-    fmt.Fprintf(rw, "<a id=\"untested\" href=\"#\">Show Alive Only</a>")
+    fmt.Fprintf(rw, "<a id=\"dead\" href=\"#\">Show Dead Only</a>")
+    fmt.Fprintf(rw, "<a id=\"untested\" href=\"#\">Show Unknown Only</a>")
 	if page == "" {
 		c.AllPages(rw, rq)
 	} else {
