@@ -16,17 +16,17 @@ function showAliveOnly() {
   var selects = document.getElementsByClassName("false");
   for (let select in selects) {
     console.log("adding class hidden");
-    selects[i].addClass("hidden");
+    select.addClass("hidden");
   }
   var selects = document.getElementsByClassName("unknown");
   for (let select in selects) {
     console.log("adding class hidden");
-    selects[i].addClass("hidden");
+    select.addClass("hidden");
   }
   var selects = document.getElementsByClassName("true");
   for (let select in selects) {
     console.log("removing class hidden");
-    selects[i].removeClass("hidden");
+    select.removeClass("hidden");
   }
 }
 
@@ -35,17 +35,17 @@ function showDeadOnly() {
   var selects = document.getElementsByClassName("true");
   for (let select in selects) {
     console.log("adding class hidden");
-    selects[i].addClass("hidden");
+    select.addClass("hidden");
   }
   var selects = document.getElementsByClassName("unknown");
   for (let select in selects) {
     console.log("adding class hidden");
-    selects[i].addClass("hidden");
+    select.addClass("hidden");
   }
   var selects = document.getElementsByClassName("false");
   for (let select in selects) {
     console.log("removing class hidden");
-    selects[i].removeClass("hidden");
+    select.removeClass("hidden");
   }
 }
 
@@ -54,16 +54,16 @@ function showUnknownOnly() {
   var selects = document.getElementsByClassName("false");
   for (let select in selects) {
     console.log("adding class hidden");
-    selects[i].addClass("hidden");
+    select.addClass("hidden");
   }
   var selects = document.getElementsByClassName("true");
   for (let select in selects) {
     console.log("adding class hidden");
-    selects[i].addClass("hidden");
+    select.addClass("hidden");
   }
   var selects = document.getElementsByClassName("unknown");
   for (let select in selects) {
-    selects[i].removeClass("hidden");
+    select.removeClass("hidden");
     console.log("removing class hidden");
   }
 }
