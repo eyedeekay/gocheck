@@ -209,7 +209,7 @@ func (c *Check) ExportMiniJsonArtifact() string {
 	export := "{\n"
 	for _, site := range c.sites {
 		if len(site.successHistory) > 0 {
-			export += strings.Replace(strings.Replace(strings.Replace(site.JsonString(), "\n  ", "\n    ", -1), "\n{", "\n  {", -1), "\n{", "\n  {", -1) + ",\n"
+			export += site.JsonString()
 		}
 	}
 	export += "}"
