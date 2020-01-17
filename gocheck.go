@@ -206,14 +206,14 @@ func (c *Check) ExportJsonArtifact() string {
 }
 
 func (c *Check) ExportMiniJsonArtifact() string {
-	export := "{"
+	export := "{\n"
 	for _, site := range c.sites {
 		if len(site.successHistory) > 0 {
-			export += strings.Replace(site.JsonString(), "\n    ", "\n      ", -1) + ",\n"
+			export += strings.Replace(strings.Replace(strings.Replace(site.JsonString(), "\n  ", "\n    ", -1), "\n{", "\n  {", -1), "\n{", "\n  {", -1) + ",\n"
 		}
 	}
 	export += "}"
-	return strings.TrimSuffix(export, "},\n}")
+	return strings.TrimSuffix(export, "},\n}") + "}\n}"
 }
 
 func (c *Check) ExportHostsFile() string {

@@ -7,18 +7,33 @@ body {
 h1, h2, h3 {
     display: inline-block;
 }
+span{
+    border: 1px solid #292929;
+    background:#332940;
+    min-width: 20%;
+    display: inline-block;
+}
+a {
+    color: #7b7;
+}
+a:visited {
+    color: #bb7;
+}
 .label {
+    color: #e6e6e7;
     min-width: 20%;
     max-width: 20%;
     display: inline-block;
     border: 1px solid #292929;
 }
 .idnum {
+    color: #e6e6e7;
     background: #1F1A24;
     margin: 1%;
     border: 1px solid #292929;
 }
 .field{
+    color: #e6e6e7;
     border: 1px solid #292929;
     background:#332940;
     min-width: 70%;
@@ -26,8 +41,10 @@ h1, h2, h3 {
     display: inline-block;
 }
 .hidden{
+    color: #e6e6e7;
     display: none !important;
 }
 .show{
+    color: #e6e6e7;
     display: inline-block;
 }
