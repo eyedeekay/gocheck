@@ -271,6 +271,7 @@ func Validate(u string) (string, error) {
 		u = strings.Replace("http://"+u, "///", "//", -1)
 	}
 	if _, err := url.Parse(u); err != nil {
+		log.Println("ERR", err)
 		return "", err
 	}
 	return u, nil

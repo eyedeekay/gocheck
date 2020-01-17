@@ -28,8 +28,9 @@ func (c *Check) ParentHTTP() {
 }
 
 func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
-	url := strings.TrimPrefix(rq.URL.Path, "/")
-	if url == "style.css" {
+	name := strings.TrimPrefix(rq.URL.Path, "/")
+	log.Println("URL", name)
+	if name == "style.css" {
 		file, err := ioutil.ReadFile("style.css")
 		if err == nil {
 			rw.Header().Set("Content-Type", "text/css")
@@ -39,7 +40,7 @@ func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
 		}
 		return
 	}
-	if url == "script.js" {
+	if name == "script.js" {
 		file, err := ioutil.ReadFile("script.js")
 		if err == nil {
 			rw.Header().Set("Content-Type", "text/javascript")
@@ -49,26 +50,25 @@ func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
 		}
 		return
 	}
-	if url == "hosts.txt" {
+	if name == "hosts.txt" {
 		fmt.Fprintf(rw, "%s", c.ExportHostsFile())
 		return
 	}
-	if url == "export.json" {
+	if name == "export.json" {
 		fmt.Fprintf(rw, "%s", c.ExportJsonArtifact())
 		return
 	}
-	if url == "export-mini.json" {
+	if name == "export-mini.json" {
 		fmt.Fprintf(rw, "%s", c.ExportMiniJsonArtifact())
 		return
 	}
-	log.Println("URL", url)
-	if url != "" {
-		query := strings.SplitN(url, "/", 1)
-		fmt.Fprintf(rw, c.QuerySite(query[0]))
-	} else if strings.HasPrefix(url, "web") {
-		c.DisplayPage(rw, rq, url)
-	} else {
+	if name == "" {
 		c.DisplayPage(rw, rq, "")
+	} else if strings.HasPrefix(name, "web") {
+		c.DisplayPage(rw, rq, name)
+	} else {
+		query := strings.SplitN(name, "/", 1)
+		fmt.Fprintf(rw, c.QuerySite(query[0]))
 	}
 }
 
@@ -108,6 +108,7 @@ func (c *Check) OnePage(rw http.ResponseWriter, rq *http.Request, page string) {
 		log.Println(err)
 		return
 	}
+	c.QuerySite(name)
 	for index, site := range c.sites {
 		if site.url == name {
 			fmt.Fprintf(rw, "<div class=\"idnum\" id=\"%v\">%v: %s\n", index, index, site.HTML())
