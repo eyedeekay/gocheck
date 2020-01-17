@@ -85,7 +85,7 @@ func (s *Site) JSONUp() string {
 		}
 	}
 	a += "]"
-	return strings.TrimSuffix(a, ",\n}") + "\n  }"
+	return strings.TrimSuffix(a, ",\n]") + "\n  ]"
 }
 
 func (s *Site) HTML() string {
