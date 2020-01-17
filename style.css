@@ -15,7 +15,7 @@ h1, h2, h3 {
 }
 .idnum {
     background: #1F1A24;
-    margin: 5%;
+    margin: 1%;
     border: 1px solid #292929;
 }
 .field{
@@ -26,14 +26,8 @@ h1, h2, h3 {
     display: inline-block;
 }
 .hidden{
-    display: none;
+    display: none !important;
 }
-.false{
-    display: inline-block;
-}
-.true{
-    display: inline-block;
-}
-.unknown{
+.show{
     display: inline-block;
 }
