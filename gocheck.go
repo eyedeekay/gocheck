@@ -202,7 +202,7 @@ func (c *Check) ExportJsonArtifact() string {
 		export += site.JsonString() + ",\n"
 	}
 	export += "}"
-	return strings.TrimSuffix(export, "},\n}") + "}\n}"
+	return strings.TrimSuffix(export, "},\n}") + "}\n}\n"
 }
 
 func (c *Check) ExportMiniJsonArtifact() string {
@@ -213,7 +213,7 @@ func (c *Check) ExportMiniJsonArtifact() string {
 		}
 	}
 	export += "}"
-	return strings.TrimSuffix(export, "},\n}") + "}\n}"
+	return strings.TrimSuffix(export, "},\n}") + "}\n}\n"
 }
 
 func (c *Check) ExportHostsFile() string {
