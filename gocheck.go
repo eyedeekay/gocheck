@@ -202,14 +202,14 @@ func (c *Check) ExportJsonArtifact() string {
 		export += site.JsonString() + ",\n"
 	}
 	export += "}"
-	return export
+	return strings.TrimSuffix(export, "},\n}") + "}\n}"
 }
 
 func (c *Check) ExportMiniJsonArtifact() string {
 	export := "{\n"
 	for _, site := range c.sites {
 		if len(site.successHistory) > 0 {
-			export += site.JsonString()
+			export += site.JsonString() + ",\n"
 		}
 	}
 	export += "}"
