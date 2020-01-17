@@ -29,7 +29,6 @@ func (c *Check) ParentHTTP() {
 
 func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
 	name := strings.TrimPrefix(rq.URL.Path, "/")
-	log.Println("URL", name)
 	if name == "style.css" {
 		file, err := ioutil.ReadFile("style.css")
 		if err == nil {
