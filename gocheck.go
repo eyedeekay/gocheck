@@ -74,9 +74,9 @@ func (s *Site) Up() string {
 
 func (s *Site) JSONUp() string {
 	if len(s.successHistory) < 1 {
-		return "{}"
+		return "[]"
 	}
-	a := "{\n"
+	a := "[\n"
 	for _, s := range s.successHistory {
 		if s {
 			a += "    true,\n"
@@ -84,7 +84,7 @@ func (s *Site) JSONUp() string {
 			a += "    false,\n"
 		}
 	}
-	a += "}"
+	a += "]"
 	return strings.TrimSuffix(a, ",\n}") + "\n  }"
 }
 
