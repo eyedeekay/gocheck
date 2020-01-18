@@ -85,11 +85,11 @@ func (c *Check) DisplayPage(rw http.ResponseWriter, rq *http.Request, page strin
 	fmt.Fprintf(rw, "<span><a id=\"untested\" href=\"#\">Show Unknown Only</a></span>")
 	body := "<h1>Gocheck: Site Uptime Checker</h1>\n"
 	body += "<h2>Check a site status from the remote server</h2>\n"
-	body += "<pre><code>    http_proxy=http://localhost:4444 cUrl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/stats.i2p </code></pre>\n"
+	body += "<pre><code>    http_proxy=http://localhost:4444 curl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/stats.i2p </code></pre>\n"
 	body += "<h2>Get an exported history of all the sites this site knows about</h2>\n"
-	body += "<pre><code>    http_proxy=http://localhost:4444 cUrl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export.json </code></pre>\n"
+	body += "<pre><code>    http_proxy=http://localhost:4444 curl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export.json </code></pre>\n"
 	body += "<h2>Get an exported history of all the sites this site has history for already</h2>\n"
-	body += "<pre><code>    http_proxy=http://localhost:4444 cUrl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export-mini.json </code></pre>\n"
+	body += "<pre><code>    http_proxy=http://localhost:4444 curl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export-mini.json </code></pre>\n"
 	fmt.Fprintf(rw, body)
 	if page == "" {
 		c.AllPages(rw, rq)
