@@ -5,7 +5,7 @@ build: fmt
 	go build -o ./main/gocheck ./main
 
 check: build
-	./main/gocheck
+	./main/gocheck -j export.json
 
 fmt:
 	gofmt -w -s *.go */*.go

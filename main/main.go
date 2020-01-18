@@ -62,6 +62,7 @@ var (
 	iniFile            = flag.String("f", "none", "Use an ini file for configuration")
 	useTLS             = flag.Bool("t", false, "Generate or use an existing TLS certificate")
 	certFile           = flag.String("m", "cert", "Certificate name to use")
+	importFile         = flag.String("j", "", "import an existing json")
 )
 
 func main() {
@@ -134,6 +135,7 @@ func main() {
 		gocheck.SetAccessList(config.AccessList),
 		gocheck.SetHostsFile(*hostsfile),
 		gocheck.SetProxy(*otherproxy),
+		gocheck.SetJsonImport(*importFile),
 	)
 	if err != nil {
 		log.Fatal(err)

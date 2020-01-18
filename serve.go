@@ -77,7 +77,7 @@ func (c *Check) DisplayPage(rw http.ResponseWriter, rq *http.Request, page strin
 	fmt.Fprintf(rw, "<head>")
 	fmt.Fprintf(rw, "    <meta charset=\"utf-8\">")
 	fmt.Fprintf(rw, "    <link type=\"text/css\" href=\"style.css\" rel=\"stylesheet\">")
-	fmt.Fprintf(rw, "    <title>I2P Site Uptime Checker </title>")
+	fmt.Fprintf(rw, "    <Title>I2P Site Uptime Checker </Title>")
 	fmt.Fprintf(rw, "</head>")
 	fmt.Fprintf(rw, "<body>")
 	fmt.Fprintf(rw, "<span><a id=\"alive\" href=\"#\">Show Alive Only</a></span>")
@@ -85,11 +85,11 @@ func (c *Check) DisplayPage(rw http.ResponseWriter, rq *http.Request, page strin
 	fmt.Fprintf(rw, "<span><a id=\"untested\" href=\"#\">Show Unknown Only</a></span>")
 	body := "<h1>Gocheck: Site Uptime Checker</h1>\n"
 	body += "<h2>Check a site status from the remote server</h2>\n"
-	body += "<pre><code>    http_proxy=http://localhost:4444 curl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/stats.i2p </code></pre>\n"
+	body += "<pre><code>    http_proxy=http://localhost:4444 cUrl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/stats.i2p </code></pre>\n"
 	body += "<h2>Get an exported history of all the sites this site knows about</h2>\n"
-	body += "<pre><code>    http_proxy=http://localhost:4444 curl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export.json </code></pre>\n"
+	body += "<pre><code>    http_proxy=http://localhost:4444 cUrl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export.json </code></pre>\n"
 	body += "<h2>Get an exported history of all the sites this site has history for already</h2>\n"
-	body += "<pre><code>    http_proxy=http://localhost:4444 curl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export-mini.json </code></pre>\n"
+	body += "<pre><code>    http_proxy=http://localhost:4444 cUrl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export-mini.json </code></pre>\n"
 	fmt.Fprintf(rw, body)
 	if page == "" {
 		c.AllPages(rw, rq)
@@ -108,16 +108,16 @@ func (c *Check) OnePage(rw http.ResponseWriter, rq *http.Request, page string) {
 		return
 	}
 	c.QuerySite(name)
-	for index, site := range c.sites {
-		if site.url == name {
+	for index, site := range c.Sites {
+		if site.Url == name {
 			fmt.Fprintf(rw, "<div class=\"idnum\" id=\"%v\">%v: %s\n", index, index, site.HTML())
 		}
 	}
 }
 
 func (c *Check) AllPages(rw http.ResponseWriter, rq *http.Request) {
-	for index, site := range c.sites {
-		if len(site.successHistory) > 0 {
+	for index, site := range c.Sites {
+		if len(site.SuccessHistory) > 0 {
 			fmt.Fprintf(rw, "<div class=\"idnum "+site.Up()+"\" id=\"%v\">%v: %s\n", index, index, site.HTML())
 		}
 	}
@@ -142,6 +142,10 @@ func (c *Check) Serve() error {
 		return err
 	}
 	return nil
+}
+
+func NewSAMChecker(hostsfile string) (*Check, error) {
+	return NewSAMCheckerFromOptions(SetHostsFile(hostsfile))
 }
 
 //NewSAMCheckerFromOptions makes a new SAM forwarder with default options, accepts host:port arguments
@@ -179,7 +183,7 @@ func NewSAMCheckerFromOptions(opts ...func(*Check) error) (*Check, error) {
 		Transport: s.Transport,
 	}
 
-	s.sites, err = s.LoadHostsFile(s.hostsfile)
+	s.Sites, err = s.LoadHostsFile(s.hostsfile)
 	if err != nil {
 		return nil, err
 	}

@@ -25,6 +25,16 @@ func SetHostsFile(s string) func(*Check) error {
 	}
 }
 
+//SetJsonImport sets the path to look for an existing uptime history to import
+func SetJsonImport(s string) func(*Check) error {
+	return func(c *Check) error {
+		if s != "" {
+			return c.Import(s)
+		}
+		return nil
+	}
+}
+
 //SetType sets the type of the forwarder server
 func SetType(s string) func(*Check) error {
 	return func(c *Check) error {

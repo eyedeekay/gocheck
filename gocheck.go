@@ -4,16 +4,14 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/eyedeekay/httptunnel/multiproxy"
 	"github.com/eyedeekay/i2pasta/convert"
-	"github.com/eyedeekay/sam-forwarder/config"
 	"github.com/eyedeekay/sam-forwarder/interface"
 	"github.com/eyedeekay/sam-forwarder/tcp"
-	"github.com/eyedeekay/sam3/i2pkeys"
 
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -23,85 +21,87 @@ import (
 // TODO save check history(more json?)
 
 type Site struct {
-	url      string
-	dest     []string
-	base32   []string
-	uptime   int
-	downtime int
+	Url      string   `json:url,omitempty`
+	Dest     []string `json:dest,omitempty`
+	Base32   []string `json:base32,omitempty`
+	Uptime   int      `json:uptime,omitempty`
+	Downtime int      `json:downtime,omitempty`
 
-	title string
-	//favicon []byte
-	desc           string
-	successHistory []bool
+	Title          string             `json:title,omitempty`
+	Desc           string             `json:desc,omitempty`
+	SuccessHistory map[time.Time]bool `json:successHistory,omitempty`
 }
 
 func (s *Site) Nines() string {
-	trues := 0  //uptime
-	falses := 0 //downtime
-	for _, v := range s.successHistory {
+	trues := 0  //Uptime
+	falses := 0 //Downtime
+	for _, v := range s.SuccessHistory {
 		if v {
 			trues += 1
 		} else {
 			falses += 1
 		}
 	}
-	s.uptime = (trues + falses) / trues
-	s.downtime = (trues + falses) / falses
-	r := "<div class=\"" + s.url + "\"" + ">"
-	r += "<p>" + strconv.Itoa(s.uptime)
+	s.Uptime = (trues + falses) / trues
+	s.Downtime = (trues + falses) / falses
+	r := "<div class=\"" + s.Url + "\"" + ">"
+	r += "<p>" + strconv.Itoa(s.Uptime)
 	r += "</p>"
-	r += "<p>" + strconv.Itoa(s.downtime)
+	r += "<p>" + strconv.Itoa(s.Downtime)
 	r += "</p>"
 	r += "</div>"
 	return r
 }
 
 func (s *Site) HostPair() string {
-	return s.url + "=" + s.dest[len(s.dest)-1]
+	return s.Url + "=" + s.Dest[len(s.Dest)-1]
+}
+
+func (s *Site) sort() []time.Time {
+	var keys []time.Time
+	for k := range s.SuccessHistory {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i].Before(keys[j])
+	})
+	return keys
+}
+
+func (s *Site) SortedSuccesses() []bool {
+	var vals []bool
+	for _, k := range s.sort() {
+		vals = append(vals, s.SuccessHistory[k])
+	}
+	return vals
 }
 
 func (s *Site) Up() string {
-	//log.Println("Length of history", len(s.successHistory))
-	if len(s.successHistory) < 1 {
+	//log.Println("Length of history", len(s.SuccessHistory))
+	if len(s.SuccessHistory) < 1 {
 		return "unknown"
 	}
 
-	if s.successHistory[len(s.successHistory)-1] {
+	if s.SortedSuccesses()[len(s.SortedSuccesses())-1] {
 		return "true"
 	}
 	return "false"
 }
 
-func (s *Site) JSONUp() string {
-	if len(s.successHistory) < 1 {
-		return "[]"
-	}
-	a := "[\n"
-	for _, s := range s.successHistory {
-		if s {
-			a += "    true,\n"
-		} else {
-			a += "    false,\n"
-		}
-	}
-	a += "]"
-	return strings.TrimSuffix(a, ",\n]") + "\n  ]"
-}
-
 func (s *Site) HTML() string {
-	r := "<span id=\"" + s.url + "\" class=\"site " + s.Up() + "\">\n"
+	r := "<span id=\"" + s.Url + "\" class=\"site " + s.Up() + "\">\n"
 	r += "<h3>"
-	if s.title == "" {
-		s.title = s.url
+	if s.Title == "" {
+		s.Title = s.Url
 	}
-	r += s.title
+	r += s.Title
 	r += "</h3>\n"
-	r += "<div><span class=\"" + s.url + " label url\">  URL: </span> <span class=\"field\"><a href=\"" + s.url + "\">" + s.url + "</a></span></div>\n"
-	r += "<div><span class=\"" + s.url + " label base32\">  Base32: </span> <span class=\"field\"><a href=\"http://" + s.base32[len(s.base32)-1] + ".b32.i2p\">" + s.base32[len(s.base32)-1] + "</a>" + "</span></div>\n"
-	r += "<div><span class=\"" + s.url + " label desc\">  Description: </span> <span class=\"field\">" + s.desc + "</span></div>\n"
-	r += "<div><span class=\"" + s.url + " label stat\">  Alive: </span> <span class=\"field\">" + s.Up() + "</span></div>\n"
-	r += "<div><span class=\"" + s.url + " label dest\">  Destination: </span> <span class=\"field\">" + s.dest[len(s.dest)-1] + "</span></div>\n"
-	if len(s.dest) > 1 && s.dest[len(s.dest)-1] != s.dest[len(s.dest)-2] {
+	r += "<div><span class=\"" + s.Url + " label Url\">  URL: </span> <span class=\"field\"><a href=\"" + s.Url + "\">" + s.Url + "</a></span></div>\n"
+	r += "<div><span class=\"" + s.Url + " label Base32\">  Base32: </span> <span class=\"field\"><a href=\"http://" + s.Base32[len(s.Base32)-1] + ".b32.i2p\">" + s.Base32[len(s.Base32)-1] + "</a>" + "</span></div>\n"
+	r += "<div><span class=\"" + s.Url + " label Desc\">  Description: </span> <span class=\"field\">" + s.Desc + "</span></div>\n"
+	r += "<div><span class=\"" + s.Url + " label stat\">  Alive: </span> <span class=\"field\">" + s.Up() + "</span></div>\n"
+	r += "<div><span class=\"" + s.Url + " label Dest\">  Destination: </span> <span class=\"field\">" + s.Dest[len(s.Dest)-1] + "</span></div>\n"
+	if len(s.Dest) > 1 && s.Dest[len(s.Dest)-1] != s.Dest[len(s.Dest)-2] {
 		r += "<div><span class=\" label updated\">Changed?:</span> <span class=\"field\">This URL has been updated since we last checked.</span></div>"
 	}
 	r += "</span>\n"
@@ -109,119 +109,17 @@ func (s *Site) HTML() string {
 	return r
 }
 
-func (s *Site) JsonString() string {
-	var r string
-	changed := "no"
-	if len(s.dest) > 1 && s.dest[len(s.dest)-1] != s.dest[len(s.dest)-2] {
-		changed = "yes"
-	}
-	r = "{\n" +
-		"  \"url\": \"" + s.url + "\",\n" +
-		"  \"dest\": \"" + s.dest[len(s.dest)-1] + "\",\n" +
-		"  \"b32\": \"" + s.base32[len(s.base32)-1] + "\",\n" +
-		"  \"title\": \"" + s.title + "\",\n" +
-		"  \"desc\": \"" + s.desc + "\",\n" +
-		"  \"up\": " + s.JSONUp() + ",\n" +
-		"  \"changed\": \"" + changed + "\",\n" +
-		"  \"url: \"" + s.url + "\"\n" +
-		"}"
-	return r
-}
-
 type Check struct {
-	*samforwarder.SAMForwarder
-	SAMHTTPProxy *i2pbrowserproxy.SAMMultiProxy
-	*http.Transport
-	*http.Client
-	RegularProxy string
+	*samforwarder.SAMForwarder `json:"-"`
+	SAMHTTPProxy               *i2pbrowserproxy.SAMMultiProxy `json:"-"`
+	*http.Transport            `json:"-"`
+	*http.Client               `json:"-"`
+	RegularProxy               string `json:"-"`
 
-	sites     []Site
-	hostsfile string
-	up        bool
-}
-
-func (c *Check) Base32() string {
-	return c.SAMForwarder.Base32()
-}
-
-func (c *Check) Base32Readable() string {
-	return c.SAMForwarder.Base32Readable()
-}
-
-func (c *Check) Base64() string {
-	return c.SAMForwarder.Base64()
-}
-
-func (c *Check) Cleanup() {
-	c.SAMForwarder.Cleanup()
-}
-
-func (c *Check) Close() error {
-	return c.SAMForwarder.Close()
-}
-
-func (c *Check) Config() *i2ptunconf.Conf {
-	return c.SAMForwarder.Config()
-}
-
-func (c *Check) GetType() string {
-	return "uptimer"
-}
-
-func (c *Check) ID() string {
-	return c.SAMForwarder.ID()
-}
-
-func (c *Check) Print() string {
-	return c.SAMForwarder.Print()
-}
-
-func (c *Check) Props() map[string]string {
-	return c.SAMForwarder.Props()
-}
-
-func (c *Check) Keys() i2pkeys.I2PKeys {
-	return c.SAMForwarder.Keys()
-}
-
-func (c *Check) Search(s string) string {
-	return c.SAMForwarder.Search(s)
-}
-
-func (c *Check) Target() string {
-	return c.SAMForwarder.Target()
-}
-
-func (c *Check) Up() bool {
-	return c.SAMForwarder.Up()
-}
-
-func (c *Check) ExportJsonArtifact() string {
-	export := "{"
-	for _, site := range c.sites {
-		export += site.JsonString() + ",\n"
-	}
-	export += "}"
-	return strings.TrimSuffix(export, "},\n}") + "}\n}\n"
-}
-
-func (c *Check) ExportMiniJsonArtifact() string {
-	export := "{\n"
-	for _, site := range c.sites {
-		if len(site.successHistory) > 0 {
-			export += site.JsonString() + ",\n"
-		}
-	}
-	export += "}"
-	return strings.TrimSuffix(export, "},\n}") + "}\n}\n"
-}
-
-func (c *Check) ExportHostsFile() string {
-	export := ""
-	for _, site := range c.sites {
-		export += site.HostPair() + "\n"
-	}
-	return export
+	Sites     []Site
+	Peers     []Site
+	hostsfile string `json:"-"`
+	up        bool   `json:"-"`
 }
 
 func (c *Check) LoadHostsFile(hostsfile string) ([]Site, error) {
@@ -243,9 +141,9 @@ func (c *Check) LoadHostsFile(hostsfile string) ([]Site, error) {
 					sites = append(
 						sites,
 						Site{
-							url:    u,
-							dest:   append([]string{}, splitpair[1]),
-							base32: append([]string{}, b32),
+							Url:    u,
+							Dest:   append([]string{}, splitpair[1]),
+							Base32: append([]string{}, b32),
 						},
 					)
 				} else {
@@ -259,63 +157,48 @@ func (c *Check) LoadHostsFile(hostsfile string) ([]Site, error) {
 	return sites, nil
 }
 
-func NewSAMChecker(hostsfile string) (*Check, error) {
-	return NewSAMCheckerFromOptions(SetHostsFile(hostsfile))
-}
-
-func Validate(u string) (string, error) {
-	if !strings.Contains(u, ".i2p") {
-		return "", fmt.Errorf("Not an I2P domain")
-	}
-	if !strings.HasPrefix(u, "http") {
-		u = strings.Replace("http://"+u, "///", "//", -1)
-	}
-	if _, err := url.Parse(u); err != nil {
-		log.Println("ERR", err)
-		return "", err
-	}
-	return u, nil
-}
-
 // TODO: Buffer should be done differently if I want to do requests like this,
 // or maybe sites should share a tunnel, or maybe I just use the HTTP proxy
 // instead.
 
 //AsyncGet is a misnomer, it has to be done in order for now.
 func (c *Check) AsyncGet(index int, site *Site) {
-	res, err := c.Client.Get(site.url)
+	res, err := c.Client.Get(site.Url)
+	if site.SuccessHistory == nil {
+		site.SuccessHistory = make(map[time.Time]bool)
+	}
 	log.Println("CHECKING UPNESS")
 	if err != nil {
 		return
 	}
 	defer res.Body.Close()
 	if res.StatusCode == 200 {
-		site.successHistory = append(site.successHistory, true)
+		site.SuccessHistory[time.Now()] = true
 		doc, err := goquery.NewDocumentFromReader(res.Body)
 		if err != nil {
 			log.Fatal(err)
 		}
-		title := strings.TrimSpace(doc.Find("title").Text())
-		if title != "" {
-			log.Println(title)
-			site.title = title
+		Title := strings.TrimSpace(doc.Find("Title").Text())
+		if Title != "" {
+			log.Println(Title)
+			site.Title = Title
 		}
-		desc := doc.Find("meta[name=description]")
-		content, ok := desc.Attr("content")
+		Desc := doc.Find("meta[name=Description]")
+		content, ok := Desc.Attr("content")
 		if ok {
-			site.desc = strings.TrimSpace(content)
+			site.Desc = strings.TrimSpace(content)
 			log.Println(strings.TrimSpace(content))
 		}
-		fmt.Printf("the eepSite is up: index=%d, title=\"%s\", desc=\"%s\", history=%d\n", index, site.title, site.desc, len(site.successHistory))
+		fmt.Printf("the eepSite is up: index=%d, Title=\"%s\", Desc=\"%s\", history=%d\n", index, site.Title, site.Desc, len(site.SuccessHistory))
 	} else {
 		fmt.Printf("the eepSite appears to be down: %v, %v\n", index, res.StatusCode)
-		site.successHistory = append(site.successHistory, false)
+		site.SuccessHistory[time.Now()] = false
 	}
 }
 
 func (c *Check) CheckAll() {
-	for index, site := range c.sites {
-		log.Printf("Checking URL: %s", site.url)
+	for index, site := range c.Sites {
+		log.Printf("Checking URL: %s", site.Url)
 		go c.AsyncGet(index, &site)
 		time.Sleep(time.Second * 20)
 	}
@@ -325,13 +208,13 @@ func (c *Check) QuerySite(s string) string {
 	if u, err := Validate(s); err != nil {
 		return "Not a valid URL for checking"
 	} else {
-		for index, site := range c.sites {
-			u2, err := Validate(site.url)
+		for index, site := range c.Sites {
+			u2, err := Validate(site.Url)
 			if err != nil {
 				return "Invalid URL found in DB"
 			}
 			if u2 == u {
-				c.AsyncGet(index, &c.sites[index])
+				c.AsyncGet(index, &c.Sites[index])
 				fmt.Printf("The site was found at %v", index)
 				return site.JsonString()
 			}
