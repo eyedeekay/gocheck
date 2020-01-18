@@ -6,7 +6,7 @@ import (
 )
 
 func (s *Site) JsonString() string {
-	r, e := json.Marshal(s)
+	r, e := json.MarshalIndent(s, "", "  ")
 	if e != nil {
 		log.Println("JSON ERROR", e.Error())
 		return e.Error()
@@ -15,7 +15,7 @@ func (s *Site) JsonString() string {
 }
 
 func (c *Check) ExportJsonArtifact() string {
-	r, e := json.Marshal(c)
+	r, e := json.MarshalIndent(c, "", "  ")
 	if e != nil {
 		log.Println("JSON ERROR", e.Error())
 		return e.Error()
@@ -30,7 +30,7 @@ func (c *Check) ExportMiniJsonArtifact() string {
 			temp = append(temp, site)
 		}
 	}
-	r, e := json.Marshal(temp)
+	r, e := json.MarshalIndent(temp, "", "  ")
 	if e != nil {
 		log.Println("JSON ERROR", e.Error())
 		return e.Error()

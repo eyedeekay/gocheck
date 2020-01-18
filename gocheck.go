@@ -109,6 +109,20 @@ func (s *Site) HTML() string {
 	return r
 }
 
+// MarshalJSON returns *m as the JSON encoding of m.
+/*func (s *Site) MarshalJSON() ([]byte, error) {
+	return []byte(s.JsonString()), nil
+}*/
+
+// UnmarshalJSON sets *m to a copy of data.
+/*func (s *Site) UnmarshalJSON(data []byte) error {
+	if s == nil {
+		return fmt.Errorf("RawString: UnmarshalJSON on nil pointer")
+	}
+	*s += Site(data)
+	return nil
+}*/
+
 type Check struct {
 	*samforwarder.SAMForwarder `json:"-"`
 	SAMHTTPProxy               *i2pbrowserproxy.SAMMultiProxy `json:"-"`
@@ -116,8 +130,8 @@ type Check struct {
 	*http.Client               `json:"-"`
 	RegularProxy               string `json:"-"`
 
-	Sites     []Site
-	Peers     []Site
+	Sites     []Site `json:"Sites,omitempty"`
+	Peers     []Site `json:"Peers,omitempty"`
 	hostsfile string `json:"-"`
 	up        bool   `json:"-"`
 }

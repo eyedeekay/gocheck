@@ -1,7 +1,9 @@
 package gocheck
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"strconv"
 )
 
@@ -28,10 +30,11 @@ func SetHostsFile(s string) func(*Check) error {
 //SetJsonImport sets the path to look for an existing uptime history to import
 func SetJsonImport(s string) func(*Check) error {
 	return func(c *Check) error {
-		if s != "" {
-			return c.Import(s)
+		b, e := ioutil.ReadFile(s)
+		if e != nil {
+			return e
 		}
-		return nil
+		return json.Unmarshal(b, c)
 	}
 }
 
