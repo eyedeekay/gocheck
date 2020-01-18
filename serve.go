@@ -182,15 +182,6 @@ func NewSAMCheckerFromOptions(opts ...func(*Check) error) (*Check, error) {
 		Timeout:   time.Duration(time.Minute * 5),
 		Transport: s.Transport,
 	}
-
-	s.Sites, err = s.LoadHostsFile(s.hostsfile)
-	if err != nil {
-		return nil, err
-	}
-	s.Peers, err = s.LoadHostsFile(s.peersfile)
-	if err != nil {
-		return nil, err
-	}
 	l, e := s.Load()
 	if e != nil {
 		return nil, e

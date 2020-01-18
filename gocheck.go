@@ -217,13 +217,22 @@ func (s *Check) Load() (samtunnel.SAMTunnel, error) {
 	if e != nil {
 		return nil, e
 	}
-	s.SAMHTTPProxy = g.(*i2pbrowserproxy.SAMMultiProxy)
-	if e := s.ImportPeers(s.importpeers); e != nil {
+	s.Sites, e = s.LoadHostsFile(s.hostsfile)
+	if e != nil {
 		return nil, e
 	}
+	s.Peers, e = s.LoadHostsFile(s.peersfile)
+	if e != nil {
+		return nil, e
+	}
+	s.SAMHTTPProxy = g.(*i2pbrowserproxy.SAMMultiProxy)
 	if e := s.ImportSites(s.importhosts); e != nil {
 		return nil, e
 	}
+	if e := s.ImportPeers(s.importpeers); e != nil {
+		return nil, e
+	}
+
 	s.up = true
 	fmt.Printf("Finished putting tunnel up")
 	return s, nil

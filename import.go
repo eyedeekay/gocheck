@@ -32,7 +32,7 @@ func (c *Check) ImportPeers(str string) error {
 
 func (c *Check) LoadHostsFile(hostsfile string) ([]Site, error) {
 	if hostsfile == "" {
-		return nil, nil
+		return nil, fmt.Errorf("Error hosts file not given %s", hostsfile)
 	}
 	hostbytes, err := ioutil.ReadFile(hostsfile)
 	if err != nil {

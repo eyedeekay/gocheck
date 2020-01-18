@@ -64,7 +64,7 @@ var (
 	certFile           = flag.String("m", "cert", "Certificate name to use")
 	importFile         = flag.String("j", "", "import an existing json Sites history")
 	importPeers        = flag.String("J", "", "import an existing json Peers history")
-	peersfile          = flag.String("P", "", "load a list of peers to monitor and query for unknown sites")
+	peersfile          = flag.String("peers", "", "load a list of peers to monitor and query for unknown sites")
 )
 
 func main() {
@@ -136,7 +136,7 @@ func main() {
 		gocheck.SetAccessListType(config.AccessListType),
 		gocheck.SetAccessList(config.AccessList),
 		gocheck.SetHostsFile(*hostsfile),
-		gocheck.SetHostsFile(*peersfile),
+		gocheck.SetPeersFile(*peersfile),
 		gocheck.SetProxy(*otherproxy),
 		gocheck.SetJsonImportSites(*importFile),
 		gocheck.SetJsonImportPeers(*importPeers),

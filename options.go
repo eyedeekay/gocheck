@@ -25,16 +25,8 @@ func SetHostsFile(s string) func(*Check) error {
 	}
 }
 
-//SetHostsFile sets the path to look for the hosts file
+//SetHostsFile sets the path to look for the peers file
 func SetPeersFile(s string) func(*Check) error {
-	return func(c *Check) error {
-		c.hostsfile = s
-		return nil
-	}
-}
-
-//SetPeers sets the kinds of peers
-func SetPeers(s string) func(*Check) error {
 	return func(c *Check) error {
 		c.peersfile = s
 		return nil
