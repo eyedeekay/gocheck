@@ -30,7 +30,7 @@ func SetHostsFile(s string) func(*Check) error {
 //SetJsonImport sets the path to look for an existing uptime history to import
 func SetJsonImport(s string) func(*Check) error {
 	return func(c *Check) error {
-		if s != "" {
+		if s == "" {
 			return nil
 		}
 		b, e := ioutil.ReadFile(s)
