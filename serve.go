@@ -53,11 +53,11 @@ func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
 		fmt.Fprintf(rw, "%s", c.ExportHostsFile())
 		return
 	}
-	if name == "export.json" {
+	if name == "export-sites.json" {
 		fmt.Fprintf(rw, "%s", c.ExportJsonArtifact())
 		return
 	}
-	if name == "export-mini.json" {
+	if name == "export-peers.json" {
 		fmt.Fprintf(rw, "%s", c.ExportMiniJsonArtifact())
 		return
 	}
@@ -87,9 +87,9 @@ func (c *Check) DisplayPage(rw http.ResponseWriter, rq *http.Request, page strin
 	body += "<h2>Check a site status from the remote server</h2>\n"
 	body += "<pre><code>    http_proxy=http://localhost:4444 curl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/stats.i2p </code></pre>\n"
 	body += "<h2>Get an exported history of all the sites this site knows about</h2>\n"
-	body += "<pre><code>    http_proxy=http://localhost:4444 curl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export.json </code></pre>\n"
+	body += "<pre><code>    http_proxy=http://localhost:4444 curl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export-sites.json </code></pre>\n"
 	body += "<h2>Get an exported history of all the sites this site has history for already</h2>\n"
-	body += "<pre><code>    http_proxy=http://localhost:4444 curl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export-mini.json </code></pre>\n"
+	body += "<pre><code>    http_proxy=http://localhost:4444 curl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export-peers.json </code></pre>\n"
 	fmt.Fprintf(rw, body)
 	if page == "" {
 		c.AllPages(rw, rq)
@@ -184,6 +184,10 @@ func NewSAMCheckerFromOptions(opts ...func(*Check) error) (*Check, error) {
 	}
 
 	s.Sites, err = s.LoadHostsFile(s.hostsfile)
+	if err != nil {
+		return nil, err
+	}
+	s.Peers, err = s.LoadHostsFile(s.peersfile)
 	if err != nil {
 		return nil, err
 	}

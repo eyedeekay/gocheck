@@ -3,12 +3,11 @@ package gocheck
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/eyedeekay/httptunnel/multiproxy"
-	"github.com/eyedeekay/i2pasta/convert"
+
 	"github.com/eyedeekay/sam-forwarder/interface"
 	"github.com/eyedeekay/sam-forwarder/tcp"
 
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"sort"
@@ -21,15 +20,15 @@ import (
 // TODO save check history(more json?)
 
 type Site struct {
-	Url      string   `json:url,omitempty`
-	Dest     []string `json:dest,omitempty`
-	Base32   []string `json:base32,omitempty`
-	Uptime   int      `json:uptime,omitempty`
-	Downtime int      `json:downtime,omitempty`
+	Url      string   `json:Url,omitempty`
+	Dest     []string `json:Dest,omitempty`
+	Base32   []string `json:Base32,omitempty`
+	Uptime   int      `json:Uptime,omitempty`
+	Downtime int      `json:Downtime,omitempty`
 
-	Title          string             `json:title,omitempty`
-	Desc           string             `json:desc,omitempty`
-	SuccessHistory map[time.Time]bool `json:successHistory,omitempty`
+	Title          string             `json:Title,omitempty`
+	Desc           string             `json:Desc,omitempty`
+	SuccessHistory map[time.Time]bool `json:SuccessHistory,omitempty`
 }
 
 func (s *Site) Nines() string {
@@ -130,45 +129,13 @@ type Check struct {
 	*http.Client               `json:"-"`
 	RegularProxy               string `json:"-"`
 
-	Sites     []Site `json:"Sites,omitempty"`
-	Peers     []Site `json:"Peers,omitempty"`
-	hostsfile string `json:"-"`
-	up        bool   `json:"-"`
-}
-
-func (c *Check) LoadHostsFile(hostsfile string) ([]Site, error) {
-	hostbytes, err := ioutil.ReadFile(hostsfile)
-	if err != nil {
-		return nil, err
-	}
-	hoststring := string(hostbytes)
-	combinedpairs := strings.Split(hoststring, "\n")
-	var sites []Site
-	for index, pair := range combinedpairs {
-		splitpair := strings.SplitN(pair, "=", 2)
-		if len(splitpair) == 2 {
-			if u, err := Validate(splitpair[0]); err != nil {
-				return nil, err
-			} else {
-				b32, err := i2pconv.I2p64to32(splitpair[1])
-				if err == nil {
-					sites = append(
-						sites,
-						Site{
-							Url:    u,
-							Dest:   append([]string{}, splitpair[1]),
-							Base32: append([]string{}, b32),
-						},
-					)
-				} else {
-					fmt.Printf("%s", err)
-				}
-				fmt.Printf("LoadHostsFile: (%v)loaded %s\n", index, splitpair[0])
-			}
-		}
-	}
-
-	return sites, nil
+	Sites       []Site `json:"Sites,omitempty"`
+	Peers       []Site `json:"Peers,omitempty"`
+	importhosts string `json:"-"`
+	importpeers string `json:"-"`
+	hostsfile   string `json:"-"`
+	peersfile   string `sjon:"-"`
+	up          bool   `json:"-"`
 }
 
 // TODO: Buffer should be done differently if I want to do requests like this,
@@ -251,6 +218,12 @@ func (s *Check) Load() (samtunnel.SAMTunnel, error) {
 		return nil, e
 	}
 	s.SAMHTTPProxy = g.(*i2pbrowserproxy.SAMMultiProxy)
+	if e := s.ImportPeers(s.importpeers); e != nil {
+		return nil, e
+	}
+	if e := s.ImportSites(s.importhosts); e != nil {
+		return nil, e
+	}
 	s.up = true
 	fmt.Printf("Finished putting tunnel up")
 	return s, nil

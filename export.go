@@ -15,7 +15,11 @@ func (s *Site) JsonString() string {
 }
 
 func (c *Check) ExportJsonArtifact() string {
-	r, e := json.MarshalIndent(c, "", "  ")
+	var Sites []Site
+	for _, site := range c.Sites {
+		Sites = append(Sites, site)
+	}
+	r, e := json.MarshalIndent(Sites, "", "  ")
 	if e != nil {
 		log.Println("JSON ERROR", e.Error())
 		return e.Error()
@@ -24,13 +28,11 @@ func (c *Check) ExportJsonArtifact() string {
 }
 
 func (c *Check) ExportMiniJsonArtifact() string {
-	var temp []Site
-	for _, site := range c.Sites {
-		if len(site.SuccessHistory) > 0 {
-			temp = append(temp, site)
-		}
+	var Peers []Site
+	for _, site := range c.Peers {
+		Peers = append(Peers, site)
 	}
-	r, e := json.MarshalIndent(temp, "", "  ")
+	r, e := json.MarshalIndent(Peers, "", "  ")
 	if e != nil {
 		log.Println("JSON ERROR", e.Error())
 		return e.Error()

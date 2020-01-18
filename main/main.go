@@ -62,7 +62,9 @@ var (
 	iniFile            = flag.String("f", "none", "Use an ini file for configuration")
 	useTLS             = flag.Bool("t", false, "Generate or use an existing TLS certificate")
 	certFile           = flag.String("m", "cert", "Certificate name to use")
-	importFile         = flag.String("j", "", "import an existing json")
+	importFile         = flag.String("j", "", "import an existing json Sites history")
+	importPeers        = flag.String("J", "", "import an existing json Peers history")
+	peersfile          = flag.String("P", "", "load a list of peers to monitor and query for unknown sites")
 )
 
 func main() {
@@ -134,8 +136,10 @@ func main() {
 		gocheck.SetAccessListType(config.AccessListType),
 		gocheck.SetAccessList(config.AccessList),
 		gocheck.SetHostsFile(*hostsfile),
+		gocheck.SetHostsFile(*peersfile),
 		gocheck.SetProxy(*otherproxy),
-		gocheck.SetJsonImport(*importFile),
+		gocheck.SetJsonImportSites(*importFile),
+		gocheck.SetJsonImportPeers(*importPeers),
 	)
 	if err != nil {
 		log.Fatal(err)

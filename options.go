@@ -1,9 +1,7 @@
 package gocheck
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"strconv"
 )
 
@@ -27,17 +25,35 @@ func SetHostsFile(s string) func(*Check) error {
 	}
 }
 
-//SetJsonImport sets the path to look for an existing uptime history to import
-func SetJsonImport(s string) func(*Check) error {
+//SetHostsFile sets the path to look for the hosts file
+func SetPeersFile(s string) func(*Check) error {
 	return func(c *Check) error {
-		if s == "" {
-			return nil
-		}
-		b, e := ioutil.ReadFile(s)
-		if e != nil {
-			return e
-		}
-		return json.Unmarshal(b, c)
+		c.hostsfile = s
+		return nil
+	}
+}
+
+//SetPeers sets the kinds of peers
+func SetPeers(s string) func(*Check) error {
+	return func(c *Check) error {
+		c.peersfile = s
+		return nil
+	}
+}
+
+//SetJsonImportSites sets the path to look for an existing uptime history to import
+func SetJsonImportSites(s string) func(*Check) error {
+	return func(c *Check) error {
+		c.importhosts = s
+		return nil
+	}
+}
+
+//SetJsonImportPeers sets the path to look for peers to co-monitor with.
+func SetJsonImportPeers(s string) func(*Check) error {
+	return func(c *Check) error {
+		c.importpeers = s
+		return nil
 	}
 }
 

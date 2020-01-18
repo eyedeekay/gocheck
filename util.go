@@ -9,7 +9,7 @@ import (
 
 func Validate(u string) (string, error) {
 	if !strings.Contains(u, ".i2p") {
-		return "", fmt.Errorf("Not an I2P domain")
+		return "", fmt.Errorf("Not an I2P domain:%s", u)
 	}
 	if !strings.HasPrefix(u, "http") {
 		u = strings.Replace("http://"+u, "///", "//", -1)
