@@ -6,6 +6,7 @@ import (
 	"github.com/eyedeekay/i2pasta/convert"
 	"io/ioutil"
 	"strings"
+	"time"
 )
 
 func (c *Check) ImportSites(str string) error {
@@ -32,7 +33,7 @@ func (c *Check) ImportPeers(str string) error {
 
 func (c *Check) LoadHostsFile(hostsfile string) ([]Site, error) {
 	if hostsfile == "" {
-		return nil, fmt.Errorf("Error hosts file not given %s", hostsfile)
+		return nil, nil //fmt.Errorf("Error hosts file not given %s", hostsfile)
 	}
 	hostbytes, err := ioutil.ReadFile(hostsfile)
 	if err != nil {
@@ -71,9 +72,10 @@ func (c *Check) LoadHostsLine(splitpair []string) (Site, error) {
 			b32, err := i2pconv.I2p64to32(splitpair[1])
 			if err == nil {
 				return Site{
-					Url:    u,
-					Dest:   append([]string{}, splitpair[1]),
-					Base32: append([]string{}, b32),
+					SuccessHistory: make(map[time.Time]bool),
+					Url:            u,
+					Dest:           append([]string{}, splitpair[1]),
+					Base32:         append([]string{}, b32),
 				}, nil
 			} else {
 				fmt.Printf("%s", err)
@@ -85,7 +87,8 @@ func (c *Check) LoadHostsLine(splitpair []string) (Site, error) {
 		} else {
 			if err == nil {
 				return Site{
-					Url: u,
+					SuccessHistory: make(map[time.Time]bool),
+					Url:            u,
 				}, nil
 			} else {
 				fmt.Printf("%s", err)

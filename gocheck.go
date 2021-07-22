@@ -131,6 +131,8 @@ type Check struct {
 
 	Sites       []Site `json:"Sites,omitempty"`
 	Peers       []Site `json:"Peers,omitempty"`
+	ScriptJS    string `json:"ScriptJS,omitempty"`
+	StyleCSS    string `json:"ScriptJS,omitempty"`
 	importhosts string `json:"-"`
 	importpeers string `json:"-"`
 	hostsfile   string `json:"-"`
@@ -143,18 +145,20 @@ type Check struct {
 // instead.
 
 //AsyncGet is a misnomer, it has to be done in order for now.
-func (c *Check) AsyncGet(index int, site *Site) {
-	res, err := c.Client.Get(site.Url)
-	if site.SuccessHistory == nil {
-		site.SuccessHistory = make(map[time.Time]bool)
-	}
-	log.Println("CHECKING UPNESS")
+func (c Check) AsyncGet(index int, url string, sh map[time.Time]bool) (success bool, title string, desc string) {
+	res, err := c.Client.Get(url)
 	if err != nil {
 		return
 	}
+	//	if site.SuccessHistory == nil {
+	//		site.SuccessHistory = make(map[time.Time]bool)
+	//	}
+	log.Println("CHECKING UPNESS")
 	defer res.Body.Close()
 	if res.StatusCode == 200 {
-		site.SuccessHistory[time.Now()] = true
+		//		site.SuccessHistory[time.Now()] = true
+		success = true
+		//		log.Println(site.SuccessHistory)
 		doc, err := goquery.NewDocumentFromReader(res.Body)
 		if err != nil {
 			log.Fatal(err)
@@ -162,30 +166,44 @@ func (c *Check) AsyncGet(index int, site *Site) {
 		Title := strings.TrimSpace(doc.Find("Title").Text())
 		if Title != "" {
 			log.Println(Title)
-			site.Title = Title
+			title = Title
 		}
-		Desc := doc.Find("meta[name=Description]")
+		Desc := doc.Find("meta[name=description]")
 		content, ok := Desc.Attr("content")
 		if ok {
-			site.Desc = strings.TrimSpace(content)
+			desc = strings.TrimSpace(content)
 			log.Println(strings.TrimSpace(content))
 		}
-		fmt.Printf("the eepSite is up: index=%d, Title=\"%s\", Desc=\"%s\", history=%d\n", index, site.Title, site.Desc, len(site.SuccessHistory))
+		Desc = doc.Find("meta[name=Description]")
+		content, ok = Desc.Attr("content")
+		if ok {
+			desc = strings.TrimSpace(content)
+			log.Println(strings.TrimSpace(content))
+		}
+		return
 	} else {
-		fmt.Printf("the eepSite appears to be down: %v, %v\n", index, res.StatusCode)
-		site.SuccessHistory[time.Now()] = false
+		success = false
+		return
 	}
 }
 
-func (c *Check) CheckAll() {
+func (c Check) CheckAll() {
 	for index, site := range c.Sites {
 		log.Printf("Checking URL: %s", site.Url)
-		go c.AsyncGet(index, &site)
-		time.Sleep(time.Second * 20)
+		s, t, d := c.AsyncGet(index, site.Url, c.Sites[index].SuccessHistory)
+		c.Sites[index].SuccessHistory[time.Now()] = s
+		c.Sites[index].Title = t
+		c.Sites[index].Desc = d
+		if s {
+			fmt.Printf("the eepSite is up: index=%d, Title=\"%s\", Desc=\"%s\", history=%d\n", index, t, d, len(site.SuccessHistory))
+		} else {
+			fmt.Printf("the eepSite appears to be down: %v, %s\n", index, site.Url)
+		}
+		time.Sleep(time.Second * 2)
 	}
 }
 
-func (c *Check) QuerySite(s string) string {
+func (c Check) QuerySite(s string) string {
 	if u, err := Validate(s); err != nil {
 		return "Not a valid URL for checking"
 	} else {
@@ -195,7 +213,10 @@ func (c *Check) QuerySite(s string) string {
 				return "Invalid URL found in DB"
 			}
 			if u2 == u {
-				c.AsyncGet(index, &c.Sites[index])
+				s, t, d := c.AsyncGet(index, c.Sites[index].Url, c.Sites[index].SuccessHistory)
+				c.Sites[index].SuccessHistory[time.Now()] = s
+				c.Sites[index].Title = t
+				c.Sites[index].Desc = d
 				fmt.Printf("The site was found at %v", index)
 				return site.JsonString()
 			}
@@ -219,11 +240,15 @@ func (s *Check) Load() (samtunnel.SAMTunnel, error) {
 	}
 	s.Sites, e = s.LoadHostsFile(s.hostsfile)
 	if e != nil {
-		return nil, e
+		if strings.Contains(e.Error(), "Error hosts file not given") {
+			return nil, e
+		}
 	}
 	s.Peers, e = s.LoadHostsFile(s.peersfile)
 	if e != nil {
-		return nil, e
+		if strings.Contains(e.Error(), "Error hosts file not given") {
+			return nil, e
+		}
 	}
 	s.SAMHTTPProxy = g.(*i2pbrowserproxy.SAMMultiProxy)
 	if e := s.ImportSites(s.importhosts); e != nil {

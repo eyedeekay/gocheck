@@ -30,22 +30,26 @@ func (c *Check) ParentHTTP() {
 func (c *Check) ServeHTTP(rw http.ResponseWriter, rq *http.Request) {
 	name := strings.TrimPrefix(rq.URL.Path, "/")
 	if name == "style.css" {
-		file, err := ioutil.ReadFile("style.css")
-		if err == nil {
-			rw.Header().Set("Content-Type", "text/css")
-			fmt.Fprintf(rw, "%s", file)
-		} else {
-			log.Println(err)
+		if c.StyleCSS != "" {
+			file, err := ioutil.ReadFile(c.StyleCSS)
+			if err == nil {
+				rw.Header().Set("Content-Type", "text/css")
+				fmt.Fprintf(rw, "%s", file)
+			} else {
+				log.Println(err)
+			}
 		}
 		return
 	}
 	if name == "script.js" {
-		file, err := ioutil.ReadFile("script.js")
-		if err == nil {
-			rw.Header().Set("Content-Type", "text/javascript")
-			fmt.Fprintf(rw, "%s", file)
-		} else {
-			log.Println(err)
+		if c.ScriptJS != "" {
+			file, err := ioutil.ReadFile(c.ScriptJS)
+			if err == nil {
+				rw.Header().Set("Content-Type", "text/javascript")
+				fmt.Fprintf(rw, "%s", file)
+			} else {
+				log.Println(err)
+			}
 		}
 		return
 	}
@@ -91,6 +95,7 @@ func (c *Check) DisplayPage(rw http.ResponseWriter, rq *http.Request, page strin
 	body += "<h2>Get an exported history of all the sites this site has history for already</h2>\n"
 	body += "<pre><code>    http_proxy=http://localhost:4444 curl http://5fma2okrcondmxkf4j2ggwuazaoo5d3z5moyh6wurgob4nthe3oa.b32.i2p/export-peers.json </code></pre>\n"
 	fmt.Fprintf(rw, body)
+	log.Println("PAGE IS:", page)
 	if page == "" {
 		c.AllPages(rw, rq)
 	} else {
@@ -117,6 +122,7 @@ func (c *Check) OnePage(rw http.ResponseWriter, rq *http.Request, page string) {
 
 func (c *Check) AllPages(rw http.ResponseWriter, rq *http.Request) {
 	for index, site := range c.Sites {
+		log.Println("SITE LISTING", site.Up(), index, site.SuccessHistory)
 		if len(site.SuccessHistory) > 0 {
 			fmt.Fprintf(rw, "<div class=\"idnum "+site.Up()+"\" id=\"%v\">%v: %s\n", index, index, site.HTML())
 		}

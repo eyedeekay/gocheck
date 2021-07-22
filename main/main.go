@@ -65,6 +65,8 @@ var (
 	importFile         = flag.String("j", "", "import an existing json Sites history")
 	importPeers        = flag.String("J", "", "import an existing json Peers history")
 	peersfile          = flag.String("peers", "", "load a list of peers to monitor and query for unknown sites")
+	scriptjs           = flag.String("scriptjs", "../script.js", "Serve some javascript on the application page")
+	stylecss           = flag.String("stylecss", "../style.css", "Serve some CSS on the application page")
 )
 
 func main() {
@@ -144,6 +146,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	eepsite.ScriptJS = *scriptjs
+	eepsite.StyleCSS = *stylecss
 
 	if eepsite != nil {
 		log.Println("Starting server")

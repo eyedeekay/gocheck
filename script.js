@@ -1,4 +1,4 @@
-document.addEventListener("click", clickEvent => {
+document.addEventListener("click", (clickEvent) => {
   if (clickEvent.target.id === "alive") {
     showAliveOnly();
   }
