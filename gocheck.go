@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"sync"
 )
 
 // TODO calculate approx 9's
@@ -29,6 +30,8 @@ type Site struct {
 	Title          string             `json:Title,omitempty`
 	Desc           string             `json:Desc,omitempty`
 	SuccessHistory map[time.Time]bool `json:SuccessHistory,omitempty`
+	
+	mutex sync.Mutex
 }
 
 func (s *Site) Nines() string {
@@ -190,15 +193,19 @@ func (c Check) AsyncGet(index int, url string, sh map[time.Time]bool) (success b
 func (c Check) CheckAll() {
 	for index, site := range c.Sites {
 		log.Printf("Checking URL: %s", site.Url)
-		s, t, d := c.AsyncGet(index, site.Url, c.Sites[index].SuccessHistory)
-		c.Sites[index].SuccessHistory[time.Now()] = s
-		c.Sites[index].Title = t
-		c.Sites[index].Desc = d
-		if s {
-			fmt.Printf("the eepSite is up: index=%d, Title=\"%s\", Desc=\"%s\", history=%d\n", index, t, d, len(site.SuccessHistory))
-		} else {
-			fmt.Printf("the eepSite appears to be down: %v, %s\n", index, site.Url)
-		}
+		go func() {
+			c.Sites[index].mutex.Lock()
+			defer c.Sites[index].mutex.Unlock()
+			s, t, d := c.AsyncGet(index, site.Url, c.Sites[index].SuccessHistory)
+			c.Sites[index].SuccessHistory[time.Now()] = s
+			c.Sites[index].Title = t
+			c.Sites[index].Desc = d
+			if s {
+				fmt.Printf("the eepSite is up: index=%d, Title=\"%s\", Desc=\"%s\", history=%d\n", index, t, d, len(site.SuccessHistory))
+			} else {
+				fmt.Printf("the eepSite appears to be down: %v, %s\n", index, site.Url)
+			}
+		}()
 		time.Sleep(time.Second * 2)
 	}
 }
@@ -217,7 +224,11 @@ func (c Check) QuerySite(s string) string {
 				c.Sites[index].SuccessHistory[time.Now()] = s
 				c.Sites[index].Title = t
 				c.Sites[index].Desc = d
-				fmt.Printf("The site was found at %v", index)
+				if s {
+					fmt.Printf("the eepSite is up: index=%d, Title=\"%s\", Desc=\"%s\", history=%d\n", index, t, d, len(site.SuccessHistory))
+				} else {
+					fmt.Printf("the eepSite appears to be down: %v, %s\n", index, site.Url)
+				}
 				return site.JsonString()
 			}
 		}
