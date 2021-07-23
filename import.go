@@ -32,6 +32,7 @@ func (c *Check) ImportPeers(str string) error {
 }
 
 func (c *Check) LoadHostsFile(hostsfile string) ([]Site, error) {
+	fmt.Printf("LoadHostsFile")
 	if hostsfile == "" {
 		return nil, nil //fmt.Errorf("Error hosts file not given %s", hostsfile)
 	}
@@ -50,15 +51,18 @@ func (c *Check) LoadHostsFile(hostsfile string) ([]Site, error) {
 func (c *Check) LoadHostsLines(hoststring string) ([]Site, error) {
 	combinedpairs := strings.Split(hoststring, "\n")
 	var sites []Site
+
 	for index, pair := range combinedpairs {
-		splitpair := strings.SplitN(pair, "=", 2)
-		if splitpair[0] != "" {
-			site, err := c.LoadHostsLine(splitpair)
-			if err != nil {
-				return nil, err
+		if !strings.HasPrefix(strings.Replace(strings.Replace(pair, " ", "", -1), "\t", "", -1), "#") {
+			splitpair := strings.SplitN(pair, "=", 2)
+			if splitpair[0] != "" {
+				site, err := c.LoadHostsLine(splitpair)
+				if err != nil {
+					return nil, err
+				}
+				sites = append(sites, site)
+				fmt.Printf("LoadHostsFile: (%v)loaded %s\n", index, splitpair[0])
 			}
-			sites = append(sites, site)
-			fmt.Printf("LoadHostsFile: (%v)loaded %s\n", index, splitpair[0])
 		}
 	}
 	return sites, nil
@@ -79,6 +83,12 @@ func (c *Check) LoadHostsLine(splitpair []string) (Site, error) {
 				}, nil
 			} else {
 				fmt.Printf("%s", err)
+				return Site{
+					SuccessHistory: make(map[time.Time]bool),
+					Url:            u,
+					Dest:           append([]string{}, splitpair[1]),
+					Base32:         append([]string{}, "fail.b32.i2p"),
+				}, nil
 			}
 		}
 	} else if len(splitpair) == 1 {

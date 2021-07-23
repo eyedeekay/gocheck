@@ -208,7 +208,7 @@ func (c Check) CheckAll() {
 			}
 			check++
 		}()
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Millisecond * 200)
 	}
 	for {
 		if len(c.Sites) == check {
