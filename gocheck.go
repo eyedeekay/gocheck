@@ -13,8 +13,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 	"sync"
+	"time"
 )
 
 // TODO calculate approx 9's
@@ -30,8 +30,6 @@ type Site struct {
 	Title          string             `json:Title,omitempty`
 	Desc           string             `json:Desc,omitempty`
 	SuccessHistory map[time.Time]bool `json:SuccessHistory,omitempty`
-	
-	mutex sync.Mutex
 }
 
 func (s *Site) Nines() string {
@@ -141,6 +139,8 @@ type Check struct {
 	hostsfile   string `json:"-"`
 	peersfile   string `sjon:"-"`
 	up          bool   `json:"-"`
+
+	mutex sync.Mutex
 }
 
 // TODO: Buffer should be done differently if I want to do requests like this,
@@ -191,23 +191,31 @@ func (c Check) AsyncGet(index int, url string, sh map[time.Time]bool) (success b
 }
 
 func (c Check) CheckAll() {
-	for index, site := range c.Sites {
-		log.Printf("Checking URL: %s", site.Url)
+	c.mutex.Lock()
+	check := 0
+	for index := range c.Sites {
 		go func() {
-			c.Sites[index].mutex.Lock()
-			defer c.Sites[index].mutex.Unlock()
-			s, t, d := c.AsyncGet(index, site.Url, c.Sites[index].SuccessHistory)
-			c.Sites[index].SuccessHistory[time.Now()] = s
-			c.Sites[index].Title = t
-			c.Sites[index].Desc = d
+			i := index
+			log.Printf("Checking URL: %s", c.Sites[i].Url)
+			s, t, d := c.AsyncGet(i, c.Sites[i].Url, c.Sites[i].SuccessHistory)
+			c.Sites[i].SuccessHistory[time.Now()] = s
+			c.Sites[i].Title = t
+			c.Sites[i].Desc = d
 			if s {
-				fmt.Printf("the eepSite is up: index=%d, Title=\"%s\", Desc=\"%s\", history=%d\n", index, t, d, len(site.SuccessHistory))
+				fmt.Printf("the eepSite is up: index=%d, Title=\"%s\", Desc=\"%s\", history=%d\n", i, t, d, len(c.Sites[i].SuccessHistory))
 			} else {
-				fmt.Printf("the eepSite appears to be down: %v, %s\n", index, site.Url)
+				fmt.Printf("the eepSite appears to be down: index=%d, url=%s\n", i, c.Sites[i].Url)
 			}
+			check++
 		}()
 		time.Sleep(time.Second * 2)
 	}
+	for {
+		if len(c.Sites) == check {
+			break
+		}
+	}
+	c.mutex.Unlock()
 }
 
 func (c Check) QuerySite(s string) string {

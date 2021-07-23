@@ -59,4 +59,4 @@ function showUnknownOnly() {
   group("false", "true", "unknown");
 }
 
-showAliveOnly();
+//showAliveOnly();

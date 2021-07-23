@@ -80,7 +80,7 @@ func (c *Check) DisplayPage(rw http.ResponseWriter, rq *http.Request, page strin
 	fmt.Fprintf(rw, "<html>")
 	fmt.Fprintf(rw, "<head>")
 	fmt.Fprintf(rw, "    <meta charset=\"utf-8\">")
-	fmt.Fprintf(rw, "    <link type=\"text/css\" href=\"style.css\" rel=\"stylesheet\">")
+	fmt.Fprintf(rw, "    <link type=\"text/css\" href=\"/style.css\" rel=\"stylesheet\">")
 	fmt.Fprintf(rw, "    <Title>I2P Site Uptime Checker </Title>")
 	fmt.Fprintf(rw, "</head>")
 	fmt.Fprintf(rw, "<body>")
@@ -101,7 +101,7 @@ func (c *Check) DisplayPage(rw http.ResponseWriter, rq *http.Request, page strin
 	} else {
 		c.OnePage(rw, rq, page)
 	}
-	fmt.Fprintf(rw, "<script src=\"script.js\"></script>")
+	fmt.Fprintf(rw, "<script src=\"/script.js\"></script>")
 	fmt.Fprintf(rw, "</body>")
 	fmt.Fprintf(rw, "</html>")
 }
@@ -130,7 +130,7 @@ func (c *Check) AllPages(rw http.ResponseWriter, rq *http.Request) {
 }
 
 func (c *Check) CheckLoop() {
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Minute)
 	for {
 		c.CheckAll()
 		time.Sleep(time.Minute * 60)
