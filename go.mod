@@ -10,6 +10,6 @@ require (
 	github.com/eyedeekay/i2pkeys v0.33.0 // indirect
 	github.com/eyedeekay/sam-forwarder v0.33.2
 	github.com/eyedeekay/sam3 v0.33.5 // indirect
-	golang.org/x/crypto v0.7.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 )
